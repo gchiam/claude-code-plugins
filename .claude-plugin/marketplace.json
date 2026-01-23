@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "claude-code-plugins",
+      "name": "gchiam-claude-code-plugins",
       "source": {
         "source": "github",
         "repo": "gchiam/claude-code-plugins"

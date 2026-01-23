@@ -11,7 +11,7 @@ Personal collection of Claude Code plugins.
 /plugin marketplace add gchiam/claude-code-plugins
 
 # Step 2: Install the plugin
-/plugin install claude-code-plugins@gchiam/claude-code-plugins
+/plugin install gchiam-claude-code-plugins@gchiam/claude-code-plugins
 ```
 
 ### From local clone
