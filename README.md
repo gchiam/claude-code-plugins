@@ -6,28 +6,21 @@ Personal collection of Claude Code plugins.
 
 ### From GitHub (recommended)
 
-```text
-/plugins install claude-code-plugins from gchiam
+```bash
+# Step 1: Add the marketplace
+/plugin marketplace add gchiam/claude-code-plugins
+
+# Step 2: Install the plugin
+/plugin install claude-code-plugins@gchiam/claude-code-plugins
 ```
 
 ### From local clone
 
 ```bash
 git clone https://github.com/gchiam/claude-code-plugins.git
-cd claude-code-plugins
-/plugins add .
-```
 
-### Manual configuration
-
-Add to `~/.claude/settings.json`:
-
-```json
-{
-  "plugins": [
-    "github:gchiam/claude-code-plugins"
-  ]
-}
+# Add as local marketplace
+/plugin marketplace add ./claude-code-plugins
 ```
 
 ## Available Plugins
@@ -64,9 +57,9 @@ for full documentation.
 
 Some skills require other plugins to be installed:
 
-```text
-/plugins install code-review from claude-plugins-official
-/plugins install pr-review-toolkit from claude-plugins-official
+```bash
+/plugin install code-review@claude-plugins-official
+/plugin install pr-review-toolkit@claude-plugins-official
 ```
 
 ## Structure
@@ -74,7 +67,8 @@ Some skills require other plugins to be installed:
 ```text
 claude-code-plugins/
 ├── .claude-plugin/
-│   └── plugin.json            # Plugin manifest
+│   ├── plugin.json            # Plugin manifest
+│   └── marketplace.json       # Marketplace definition
 ├── commands/
 │   └── parallel-pr-review.md  # /parallel-pr-review command
 ├── skills/

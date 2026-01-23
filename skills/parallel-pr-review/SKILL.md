@@ -18,7 +18,7 @@ flowchart TB
     Start([Start])
     Phase0[Phase 0: Validate Skills]
     SkillsExist{Skills exist?}
-    ShowInstall[Show /plugins install instructions]:::warning
+    ShowInstall[Show /plugin install instructions]:::warning
     Stop([STOP]):::error
     Output([Output final report])
 
@@ -142,10 +142,10 @@ Before proceeding, verify both required skills are available:
 2. If either skill is missing, **STOP** and display the following message:
 
 ```
-Missing required plugin(s). Install using /plugins command:
+Missing required plugin(s). Install using /plugin command:
 
-/plugins install code-review from claude-plugins-official
-/plugins install pr-review-toolkit from claude-plugins-official
+/plugin install code-review@claude-plugins-official
+/plugin install pr-review-toolkit@claude-plugins-official
 
 After installation, run this skill again.
 ```

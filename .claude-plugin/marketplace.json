@@ -1,0 +1,10 @@
+{
+  "name": "gchiam-plugins",
+  "description": "Personal collection of Claude Code plugins",
+  "plugins": [
+    {
+      "name": "claude-code-plugins",
+      "path": "."
+    }
+  ]
+}
