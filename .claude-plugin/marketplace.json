@@ -1,10 +1,16 @@
 {
   "name": "gchiam-plugins",
-  "description": "Personal collection of Claude Code plugins",
+  "owner": {
+    "name": "gchiam"
+  },
+  "metadata": {
+    "description": "Personal collection of Claude Code plugins"
+  },
   "plugins": [
     {
       "name": "claude-code-plugins",
-      "path": "."
+      "source": ".",
+      "description": "Parallel PR review with multi-perspective analysis"
     }
   ]
 }
