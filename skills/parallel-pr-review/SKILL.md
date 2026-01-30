@@ -4,20 +4,21 @@ description: >-
   Use when reviewing a PR or set of changed files with comprehensive
   multi-perspective analysis, when wanting parallel code reviews from
   different methodologies, or when needing validated and aggregated
-  review findings
+  review findings including security analysis
 ---
 
 # Parallel PR Review
 
 ## Overview
 
-This skill orchestrates comprehensive PR reviews by running two independent
+This skill orchestrates comprehensive PR reviews by running three independent
 review methodologies in parallel, validating their findings, and producing
 an aggregated summary. Reviews are saved to markdown files and **never
 posted directly to the PR**.
 
 **Core principle:** Multiple review perspectives catch more issues.
-Validation filters false positives. Aggregation provides actionable summary.
+Security-focused analysis catches vulnerabilities. Validation filters
+false positives. Aggregation provides actionable summary.
 
 ## Workflow
 
@@ -43,23 +44,29 @@ flowchart TB
         direction LR
         R1[code-review:code-review]
         R2[pr-review-toolkit:review-pr]
+        R3[security-guidance]
     end
 
     Phase1 --> Save1[review-code-review.md]
     Phase1 --> Save2[review-pr-toolkit.md]
+    Phase1 --> Save3[review-security.md]
     Save1 --> Phase2
     Save2 --> Phase2
+    Save3 --> Phase2
 
     subgraph Phase2[Phase 2: Parallel Validation]
         direction LR
-        V1[Validator 1: Evaluate code-review]
-        V2[Validator 2: Evaluate pr-toolkit]
+        V1[Validator 1: code-review]
+        V2[Validator 2: pr-toolkit]
+        V3[Validator 3: security]
     end
 
     Phase2 --> VSave1[validated-code-review.md]
     Phase2 --> VSave2[validated-pr-toolkit.md]
+    Phase2 --> VSave3[validated-security.md]
     VSave1 --> Phase3
     VSave2 --> Phase3
+    VSave3 --> Phase3
 
     Phase3[Phase 3: Aggregate Summary]
     Phase3 --> Summary[pr-review-summary.md]
@@ -98,12 +105,12 @@ Specify what to review using these options:
 | `--output-dir`      | Directory for review files   | `./.reviews/` |
 | `--confidence`      | Min confidence threshold     | `70`          |
 | `--skip-validation` | Skip Phase 2, use raw results| `false`       |
-| `--only <skill>`    | Run only one review skill    | both          |
+| `--only <skill>`    | Run subset of reviewers      | all           |
 | `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
 
-> **Naming convention:** `pr-toolkit` is shorthand for `pr-review-toolkit`.
-> This shorthand is used in options and output file names
-> (e.g., `review-pr-toolkit.md`).
+> **Naming convention:** `pr-toolkit` = pr-review-toolkit, `security` =
+> security-guidance. These shorthands are used in options and output
+> file names (e.g., `review-security.md`).
 
 **Output directory structure:**
 
@@ -112,8 +119,10 @@ Specify what to review using these options:
 └── 2024-01-23-143052/           # Timestamped run
     ├── review-code-review.md
     ├── review-pr-toolkit.md
+    ├── review-security.md
     ├── validated-code-review.md
     ├── validated-pr-toolkit.md
+    ├── validated-security.md
     └── pr-review-summary.md
 ```
 
@@ -141,10 +150,11 @@ Display progress during execution:
 Parallel PR Review - PR #123
 ════════════════════════════════════════
 
-[✓] Phase 0: Validating skills... (2 found)
+[✓] Phase 0: Validating skills... (3 found)
 [⋯] Phase 1: Running parallel reviews...
     ├── [✓] code-review:code-review (12 issues)
-    └── [⋯] pr-review-toolkit:review-pr...
+    ├── [⋯] pr-review-toolkit:review-pr...
+    └── [ ] security-guidance...
 [ ] Phase 2: Validating findings...
 [ ] Phase 3: Aggregating summary...
 
@@ -153,31 +163,34 @@ Output: .reviews/2024-01-23-143052/
 
 ## Phase 0: Validate Required Skills
 
-Before proceeding, verify both required skills are available:
+Before proceeding, verify all three required skills are available:
 
 1. **code-review:code-review** - Claude Code's built-in PR review skill
-2. **pr-review-toolkit:review-pr** - Comprehensive multi-agent PR review toolkit
+2. **pr-review-toolkit:review-pr** - Comprehensive multi-agent PR review
+3. **security-guidance** - Security-focused vulnerability analysis
 
 **Validation steps:**
 
-1. Check if both plugins are installed by looking for them in the
+1. Check if all three plugins are installed by looking for them in the
    available skills/commands
-2. If either skill is missing, **STOP** and display the following message:
+2. If any skill is missing, **STOP** and display the following message:
 
 ```text
 Missing required plugin(s). Install using /plugin command:
 
 /plugin install code-review@claude-plugins-official
 /plugin install pr-review-toolkit@claude-plugins-official
+/plugin install security-guidance@claude-plugins-official
 
 After installation, run this skill again.
 ```
 
-1. Only proceed to Phase 1 if BOTH skills are confirmed available
+1. Only proceed to Phase 1 if ALL skills are confirmed available
 
 ## Phase 1: Parallel Review Execution
 
-Launch **two subagents in parallel** using the Task tool in a single message:
+Launch **three subagents in parallel** using the Task tool in a single
+message:
 
 ### Subagent 1: code-review:code-review
 
@@ -230,12 +243,45 @@ Configuration:
 Save all findings - they will be written to a markdown file.
 ```
 
+### Subagent 3: security-guidance
+
+```markdown
+**Task prompt for Subagent 3:**
+
+Run the security-guidance skill on [TARGET].
+
+CRITICAL INSTRUCTIONS:
+1. Do NOT post any comments to the PR
+2. Do NOT use `gh pr comment` or any GitHub posting commands
+3. Perform comprehensive security analysis including:
+   - OWASP Top 10 vulnerability checks
+   - Authentication/authorization issues
+   - Input validation and sanitization
+   - Secrets/credential exposure
+   - Injection vulnerabilities (SQL, XSS, command)
+   - Insecure dependencies
+   - Cryptographic issues
+4. Capture ALL security findings with:
+   - Severity level (Critical/High/Medium/Low)
+   - CWE references where applicable
+   - Remediation guidance
+5. Format output as structured markdown
+6. Return the complete security findings
+
+Configuration:
+- Review scope: [diff-only | full-context]
+- Files: [file list if specified]
+
+Save all findings - they will be written to a markdown file.
+```
+
 ### Phase 1 Output Files
 
-After both subagents complete, write results to output directory:
+After all three subagents complete, write results to output directory:
 
 - `review-code-review.md` - Output from code-review:code-review
 - `review-pr-toolkit.md` - Output from pr-review-toolkit:review-pr
+- `review-security.md` - Output from security-guidance
 
 Include header in each file:
 
@@ -253,7 +299,7 @@ Include header in each file:
 
 ## Phase 2: Parallel Validation
 
-Launch **two validation subagents in parallel** to evaluate the review findings:
+Launch **three validation subagents in parallel** to evaluate findings:
 
 ### Validator 1: Evaluate code-review findings
 
@@ -301,10 +347,34 @@ Filter criteria:
 Output: Validated findings with confidence scores and reasoning.
 ```
 
+### Validator 3: Evaluate security-guidance findings
+
+```markdown
+**Task prompt for Validator 3 (Sonnet recommended):**
+
+Read and evaluate the findings in review-security.md.
+
+For each security issue found:
+1. Verify the vulnerability is real (not a false positive)
+2. Check if it's exploitable in this context
+3. Verify severity matches the actual risk
+4. Evaluate confidence level (0-100)
+5. Check if remediation is actionable
+
+Filter criteria:
+- Remove false positives and theoretical-only issues
+- Remove pre-existing vulnerabilities not introduced by this PR
+- Keep security issues with confidence >= [CONFIDENCE_THRESHOLD]
+- ALWAYS keep Critical/High severity issues regardless of threshold
+
+Output: Validated security findings with confidence scores and reasoning.
+```
+
 ### Validation Output Files
 
 - `validated-code-review.md` - Validated findings from code-review
 - `validated-pr-toolkit.md` - Validated findings from pr-review-toolkit
+- `validated-security.md` - Validated findings from security-guidance
 
 ## Phase 3: Aggregate Summary
 
@@ -323,14 +393,15 @@ Issues are considered duplicates if ANY of these match:
 **When duplicates found:**
 
 - Keep the instance with highest confidence score
-- Mark as "Found by both reviews" in Source column
-- Combine unique details from both descriptions
+- Mark source as "2+ reviews" or "all" in Source column
+- Combine unique details from all descriptions
+- Preserve security context if one source is security-guidance
 
 ### Aggregation Steps
 
-1. **Deduplicate** - Identify issues found by both reviews using rules above
+1. **Deduplicate** - Identify issues found by multiple reviews
 2. **Categorize** - Group by severity (Critical > Important > Suggestions)
-3. **Prioritize** - Order by confidence score within categories
+3. **Prioritize** - Security issues first, then by confidence score
 4. **Cross-reference** - Note which review(s) found each issue
 5. **Synthesize** - Create actionable summary
 
@@ -341,7 +412,7 @@ Issues are considered duplicates if ANY of these match:
 
 **PR:** [PR number/branch]
 **Date:** [timestamp]
-**Reviews Run:** code-review:code-review, pr-review-toolkit:review-pr
+**Reviews Run:** code-review, pr-review-toolkit, security-guidance
 **Confidence Threshold:** [threshold]%
 **Output Directory:** [path]
 
@@ -349,11 +420,17 @@ Issues are considered duplicates if ANY of these match:
 
 [2-3 sentence overview of PR quality and key findings]
 
+## Security Issues
+
+| # | Issue | Severity | CWE | Confidence | File:Line |
+|---|-------|----------|-----|------------|-----------|
+| 1 | [description] | Critical | CWE-XX | [score]% | [location] |
+
 ## Critical Issues (Must Fix)
 
 | # | Issue | Source | Confidence | File:Line |
 |---|-------|--------|------------|-----------|
-| 1 | [description] | [both/code-review/pr-toolkit] | [score]% | [location] |
+| 1 | [description] | [all/2+/single] | [score]% | [location] |
 
 ## Important Issues (Should Fix)
 
@@ -371,23 +448,25 @@ Issues are considered duplicates if ANY of these match:
 
 ## Review Agreement Analysis
 
-- **Issues found by both reviews:** [count] (high confidence)
+- **Issues found by all three reviews:** [count] (highest confidence)
+- **Issues found by 2+ reviews:** [count] (high confidence)
 - **Issues unique to code-review:** [count]
 - **Issues unique to pr-review-toolkit:** [count]
+- **Issues unique to security-guidance:** [count]
 - **Agreement rate:** [percentage]%
 - **Overall confidence:** [high/medium/low]
 
 ## Recommended Actions
 
-1. [Prioritized action item]
+1. [Prioritized action item - security first]
 2. [Next action]
 3. [...]
 
 ---
 
 *Generated by parallel-pr-review skill*
-*Review files: review-code-review.md, review-pr-toolkit.md*
-*Validation files: validated-code-review.md, validated-pr-toolkit.md*
+*Review files: review-code-review.md, review-pr-toolkit.md, review-security.md*
+*Validation files: validated-*.md*
 ```
 
 ### Phase 3 Output Files
@@ -399,7 +478,7 @@ Issues are considered duplicates if ANY of these match:
 After summary is generated, offer an action menu:
 
 ```text
-Review complete! Found 3 critical, 5 important issues.
+Review complete! Found 2 security, 3 critical, 5 important issues.
 
 What would you like to do?
 
@@ -444,11 +523,12 @@ Run parallel-pr-review --pr 123
 Run parallel-pr-review --pr 123 --confidence 80 --output-dir ./my-reviews
 ```
 
-### Review only with one skill
+### Review with specific reviewers only
 
 ```bash
 Run parallel-pr-review --only code-review
-Run parallel-pr-review --only pr-toolkit
+Run parallel-pr-review --only security
+Run parallel-pr-review --only code-review,security
 ```
 
 ### Skip validation phase
@@ -481,8 +561,10 @@ Run parallel-pr-review --pr 123 --full-context
 | -------------------------- | ----- | ------------------------------ |
 | `review-code-review.md`    | 1     | Raw output from code-review    |
 | `review-pr-toolkit.md`     | 1     | Raw output from pr-toolkit     |
+| `review-security.md`       | 1     | Raw output from security       |
 | `validated-code-review.md` | 2     | Validated code-review findings |
 | `validated-pr-toolkit.md`  | 2     | Validated pr-toolkit findings  |
+| `validated-security.md`    | 2     | Validated security findings    |
 | `pr-review-summary.md`     | 3     | Final aggregated summary       |
 | `fix-suggestions.md`       | Post  | Fix suggestions (optional)     |
 
@@ -498,16 +580,16 @@ Run parallel-pr-review --pr 123 --full-context
 
 **Parallel execution:**
 
-- Phase 1: Both reviews run simultaneously
-- Phase 2: Both validators run simultaneously
-- Use single Task tool message with multiple invocations for true parallelism
+- Phase 1: All three reviews run simultaneously
+- Phase 2: All three validators run simultaneously
+- Use single Task tool message with multiple invocations for parallelism
 
 ## Error Handling
 
 | Scenario                      | Behavior                             |
 | ----------------------------- | ------------------------------------ |
 | One skill fails in Phase 1    | Continue with available, warn user   |
-| Both skills fail in Phase 1   | Abort with error details             |
+| All skills fail in Phase 1    | Abort with error details             |
 | Validation fails              | Use unvalidated results with warning |
 | Output directory not writable | Fallback to current directory        |
 | PR not found                  | Prompt for correct PR number         |
@@ -518,9 +600,11 @@ phases succeeded/failed.
 
 ## Selective Execution
 
-| Flag                 | Skips             | Use Case                      |
-| -------------------- | ----------------- | ----------------------------- |
-| `--only code-review` | pr-review-toolkit | Quick CLAUDE.md compliance    |
-| `--only pr-toolkit`  | code-review       | Comprehensive multi-aspect    |
-| `--skip-validation`  | Phase 2           | Trust raw results, faster     |
-| `--revalidate`       | Phase 1           | Re-filter with new threshold  |
+| Flag                 | Skips                   | Use Case                    |
+| -------------------- | ----------------------- | --------------------------- |
+| `--only code-review` | pr-toolkit, security    | Quick CLAUDE.md compliance  |
+| `--only pr-toolkit`  | code-review, security   | Multi-aspect review         |
+| `--only security`    | code-review, pr-toolkit | Security-only review        |
+| `--only X,Y`         | Excluded skill          | Custom combination          |
+| `--skip-validation`  | Phase 2                 | Trust raw results, faster   |
+| `--revalidate`       | Phase 1                 | Re-filter with new threshold|
