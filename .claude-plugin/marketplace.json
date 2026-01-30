@@ -10,8 +10,8 @@
     {
       "name": "gchiam-claude-code-plugins",
       "source": {
-        "source": "github",
-        "repo": "gchiam/claude-code-plugins"
+        "source": "url",
+        "url": "https://github.com/gchiam/claude-code-plugins.git"
       },
       "description": "Parallel PR review with multi-perspective analysis"
     }
