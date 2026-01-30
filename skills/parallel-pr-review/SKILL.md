@@ -13,6 +13,8 @@ This skill orchestrates comprehensive PR reviews by running two independent revi
 
 ## Workflow
 
+> **Note:** The diagram below uses Mermaid syntax. If it doesn't render in your viewer, see the ASCII version in [README.md](README.md#how-it-works).
+
 ```mermaid
 flowchart TB
     Start([Start])
@@ -86,8 +88,10 @@ Specify what to review using these options:
 | `--output-dir <path>` | Directory for review files | `./.reviews/` |
 | `--confidence <0-100>` | Minimum confidence threshold | `70` |
 | `--skip-validation` | Skip Phase 2, use raw results | `false` |
-| `--only <skill>` | Run only one review skill | both |
+| `--only <skill>` | Run only one review skill (`code-review` or `pr-toolkit`) | both |
 | `--revalidate` | Re-run Phase 2-3 on existing files | `false` |
+
+> **Naming convention:** `pr-toolkit` is shorthand for `pr-review-toolkit`. This shorthand is used in options and output file names (e.g., `review-pr-toolkit.md`).
 
 **Output directory structure:**
 ```
@@ -100,16 +104,18 @@ Specify what to review using these options:
     └── pr-review-summary.md
 ```
 
-## Model Selection
+## Model Recommendations
 
-Optimize for quality by using appropriate models per phase:
+The following model recommendations optimize for quality per phase. Note that actual model selection depends on user configuration and Claude Code settings - this skill cannot enforce specific models.
 
-| Phase | Task | Model | Rationale |
-|-------|------|-------|-----------|
+| Phase | Task | Recommended | Rationale |
+|-------|------|-------------|-----------|
 | 0 | Validate skills | Haiku | Simple existence check |
 | 1 | Run reviews | Opus | Deep analysis, highest quality |
 | 2 | Validate findings | Sonnet | Filtering/scoring needs good judgment |
 | 3 | Aggregate summary | Opus | Synthesis needs advanced reasoning |
+
+When spawning subagents with the Task tool, you may specify a `model` parameter (e.g., `"model": "haiku"`) but this is a hint, not a guarantee.
 
 ## Progress Reporting
 
@@ -234,7 +240,7 @@ Launch **two validation subagents in parallel** to evaluate the review findings:
 ### Validator 1: Evaluate code-review findings
 
 ```markdown
-**Task prompt for Validator 1 (Haiku):**
+**Task prompt for Validator 1 (Sonnet recommended):**
 
 Read and evaluate the findings in review-code-review.md.
 
@@ -257,7 +263,7 @@ Output: Validated findings with confidence scores and reasoning.
 ### Validator 2: Evaluate pr-review-toolkit findings
 
 ```markdown
-**Task prompt for Validator 2 (Haiku):**
+**Task prompt for Validator 2 (Sonnet recommended):**
 
 Read and evaluate the findings in review-pr-toolkit.md.
 

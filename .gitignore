@@ -1,0 +1,21 @@
+# Review output directories
+.reviews/
+
+# macOS
+.DS_Store
+
+# Editor/IDE
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Node.js (if dependencies are added later)
+node_modules/
+npm-debug.log*
+
+# Logs
+*.log

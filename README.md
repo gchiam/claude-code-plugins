@@ -23,6 +23,16 @@ git clone https://github.com/gchiam/claude-code-plugins.git
 /plugin marketplace add ./claude-code-plugins
 ```
 
+## Uninstallation
+
+```bash
+# Remove the plugin
+/plugin uninstall gchiam-claude-code-plugins
+
+# Optionally remove the marketplace
+/plugin marketplace remove gchiam/claude-code-plugins
+```
+
 ## Available Plugins
 
 ### parallel-pr-review

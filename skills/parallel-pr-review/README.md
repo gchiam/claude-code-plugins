@@ -27,8 +27,8 @@ claude "Run parallel-pr-review --pr 123 --confidence 80"
 Install the required plugins:
 
 ```
-/plugins install code-review from claude-plugins-official
-/plugins install pr-review-toolkit from claude-plugins-official
+/plugin install code-review@claude-plugins-official
+/plugin install pr-review-toolkit@claude-plugins-official
 ```
 
 ## How It Works
@@ -94,6 +94,8 @@ All results are saved to `.reviews/<timestamp>/`:
 | `--confidence` | `70` | Minimum confidence to include (0-100) |
 | `--skip-validation` | `false` | Skip Phase 2 for faster results |
 | `--only <skill>` | both | Run only `code-review` or `pr-toolkit` |
+
+> **Note:** `pr-toolkit` is shorthand for the `pr-review-toolkit` plugin. File names also use this shorthand (e.g., `review-pr-toolkit.md`).
 
 ## Examples
 
@@ -171,8 +173,12 @@ A: Use `--confidence`. Higher values (80-90) = fewer but more certain issues. Lo
 
 ## Files
 
+When installed as a plugin, files are located within the plugin directory:
+
 ```
-~/.claude/skills/parallel-pr-review/
+<plugin-dir>/skills/parallel-pr-review/
 ├── SKILL.md   # Instructions for Claude (technical)
 └── README.md  # This file (human documentation)
 ```
+
+The command definition is at `<plugin-dir>/commands/parallel-pr-review.md`.
