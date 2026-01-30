@@ -226,7 +226,7 @@ Missing required plugin(s). Install using /plugin command:
 After installation, run this skill again.
 ```
 
-1. Only proceed to Phase 1 if both plugins are confirmed available
+3. Only proceed to Phase 1 if both plugins are confirmed available
 
 ## Phase 1: Parallel Review Execution
 
