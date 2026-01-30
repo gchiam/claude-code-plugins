@@ -9,16 +9,66 @@ description: >-
 
 # Parallel PR Review
 
+## CRITICAL: Task Tool Configuration
+
+**YOU MUST USE THESE EXACT PARAMETERS.** Do NOT use specialized subagent types.
+
+### Phase 1: Launch TWO agents in ONE message
+
+```jsonc
+// Agent 1 - MUST use general-purpose, NOT code-reviewer
+{
+  "subagent_type": "general-purpose",
+  "description": "Code review command agent",
+  "prompt": "Use the Skill tool to invoke code-review:code-review on PR #[NUMBER]. Do NOT post comments to PR. Return all findings as markdown.",
+  "run_in_background": true
+}
+
+// Agent 2 - MUST use general-purpose, NOT pr-review-toolkit:code-reviewer
+{
+  "subagent_type": "general-purpose",
+  "description": "PR toolkit command agent",
+  "prompt": "Use the Skill tool to invoke pr-review-toolkit:review-pr with 'all' aspects on PR #[NUMBER]. Do NOT post comments to PR. Return all findings as markdown.",
+  "run_in_background": true
+}
+```
+
+> **Note:** The `review-pr` command internally orchestrates multiple specialized
+> agents, so two top-level agents provide comprehensive coverage.
+
+### Synchronization: WAIT for all agents
+
+After launching background agents, you MUST wait for ALL to complete before
+proceeding to write output files. Use `TaskOutput` tool with `block: true`:
+
+```jsonc
+// Wait for each agent - call these BEFORE writing any output files
+{"task_id": "[agent-1-id]", "block": true, "timeout": 300000}
+{"task_id": "[agent-2-id]", "block": true, "timeout": 300000}
+```
+
+**DO NOT proceed to Phase 2 or write output files until BOTH agents complete.**
+
+### WRONG (do not do this):
+- **[X]** `"subagent_type": "code-reviewer"` - Use `general-purpose` + Skill tool instead
+- **[X]** `"subagent_type": "pr-review-toolkit:code-reviewer"` - Use `general-purpose` + Skill tool instead
+
+### CORRECT (do this):
+- **[OK]** `"subagent_type": "general-purpose"` - Then use Skill tool to invoke the command
+
+---
+
 ## Overview
 
-This skill orchestrates comprehensive PR reviews by running three independent
-review methodologies in parallel, validating their findings, and producing
-an aggregated summary. Reviews are saved to markdown files and **never
-posted directly to the PR**.
+This skill orchestrates comprehensive PR reviews by running two independent
+review commands in parallel, validating their findings, and producing an
+aggregated summary. Reviews are saved to markdown files and **never posted
+directly to the PR**.
 
-**Core principle:** Multiple review perspectives catch more issues.
-Security-focused analysis catches vulnerabilities. Validation filters
-false positives. Aggregation provides actionable summary.
+**Core principle:** Multiple review perspectives catch more issues. The
+`review-pr` command internally orchestrates multiple specialized agents
+(including error handling and security analysis). Validation filters false
+positives. Aggregation provides actionable summary.
 
 ## Workflow
 
@@ -44,29 +94,23 @@ flowchart TB
         direction LR
         R1[code-review:code-review]
         R2[pr-review-toolkit:review-pr]
-        R3[security-guidance]
     end
 
     Phase1 --> Save1[review-code-review.md]
     Phase1 --> Save2[review-pr-toolkit.md]
-    Phase1 --> Save3[review-security.md]
     Save1 --> Phase2
     Save2 --> Phase2
-    Save3 --> Phase2
 
     subgraph Phase2[Phase 2: Parallel Validation]
         direction LR
         V1[Validator 1: code-review]
         V2[Validator 2: pr-toolkit]
-        V3[Validator 3: security]
     end
 
     Phase2 --> VSave1[validated-code-review.md]
     Phase2 --> VSave2[validated-pr-toolkit.md]
-    Phase2 --> VSave3[validated-security.md]
     VSave1 --> Phase3
     VSave2 --> Phase3
-    VSave3 --> Phase3
 
     Phase3[Phase 3: Aggregate Summary]
     Phase3 --> Summary[pr-review-summary.md]
@@ -108,9 +152,8 @@ Specify what to review using these options:
 | `--only <skill>`    | Run subset of reviewers      | all           |
 | `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
 
-> **Naming convention:** `pr-toolkit` = pr-review-toolkit, `security` =
-> security-guidance. These shorthands are used in options and output
-> file names (e.g., `review-security.md`).
+> **Naming convention:** `pr-toolkit` = pr-review-toolkit. This shorthand is
+> used in options and output file names.
 
 **Output directory structure:**
 
@@ -119,10 +162,8 @@ Specify what to review using these options:
 └── 2024-01-23-143052/           # Timestamped run
     ├── review-code-review.md
     ├── review-pr-toolkit.md
-    ├── review-security.md
     ├── validated-code-review.md
     ├── validated-pr-toolkit.md
-    ├── validated-security.md
     └── pr-review-summary.md
 ```
 
@@ -150,52 +191,60 @@ Display progress during execution:
 Parallel PR Review - PR #123
 ════════════════════════════════════════
 
-[✓] Phase 0: Validating skills... (3 found)
+[✓] Phase 0: Validating plugins... (2 found)
 [⋯] Phase 1: Running parallel reviews...
     ├── [✓] code-review:code-review (12 issues)
-    ├── [⋯] pr-review-toolkit:review-pr...
-    └── [ ] security-guidance...
+    └── [⋯] pr-review-toolkit:review-pr...
 [ ] Phase 2: Validating findings...
 [ ] Phase 3: Aggregating summary...
 
 Output: .reviews/2024-01-23-143052/
 ```
 
-## Phase 0: Validate Required Skills
+## Phase 0: Validate Required Plugins
 
-Before proceeding, verify all three required skills are available:
+Before proceeding, verify required plugins are installed:
 
-1. **code-review:code-review** - Claude Code's built-in PR review skill
-2. **pr-review-toolkit:review-pr** - Comprehensive multi-agent PR review
-3. **security-guidance** - Security-focused vulnerability analysis
+1. **code-review:code-review** - Claude Code's built-in PR review command
+2. **pr-review-toolkit:review-pr** - Comprehensive multi-agent PR review command
+
+> **Note:** The `review-pr` command internally orchestrates multiple specialized
+> agents, providing comprehensive coverage with just two top-level agents.
 
 **Validation steps:**
 
-1. Check if all three plugins are installed by looking for them in the
+1. Check if both plugins are installed by looking for them in the
    available skills/commands
-2. If any skill is missing, **STOP** and display the following message:
+2. If any plugin is missing, **STOP** and display the following message:
 
 ```text
 Missing required plugin(s). Install using /plugin command:
 
 /plugin install code-review@claude-plugins-official
 /plugin install pr-review-toolkit@claude-plugins-official
-/plugin install security-guidance@claude-plugins-official
 
 After installation, run this skill again.
 ```
 
-1. Only proceed to Phase 1 if ALL skills are confirmed available
+1. Only proceed to Phase 1 if both plugins are confirmed available
 
 ## Phase 1: Parallel Review Execution
 
-Launch **three general-purpose agents in parallel** using the Task tool in a
+> **STOP! Before proceeding, review the "CRITICAL: Task Tool Configuration"
+> section at the top of this document.** Both agents use `general-purpose`.
+
+Launch **two general-purpose agents in parallel** using the Task tool in a
 single message. Each agent must use `subagent_type: "general-purpose"` so it
-can invoke skills via the Skill tool.
+can invoke commands via the Skill tool.
 
 **CRITICAL:** Do NOT use specialized subagent types like `code-reviewer` or
-`silent-failure-hunter`. These are Task agent types, not skills. You must use
-`general-purpose` agents that will invoke the actual skills.
+`pr-review-toolkit:code-reviewer`. You must use `general-purpose` agents that
+invoke the commands via the Skill tool.
+
+**Verification checkpoint:** Before calling the Task tool, confirm:
+- [ ] Both agents use `"subagent_type": "general-purpose"`
+- [ ] Both agent prompts start with "Use the Skill tool to invoke..."
+- [ ] No agent uses `code-reviewer` or `pr-review-toolkit:code-reviewer`
 
 ### Agent 1: code-review:code-review
 
@@ -248,45 +297,15 @@ Configuration:
 Save all findings - they will be written to a markdown file.
 ```
 
-### Agent 3: security-guidance
-
-```markdown
-**Task prompt for Agent 3 (subagent_type: "general-purpose"):**
-
-Use the Skill tool to invoke the security-guidance skill on [TARGET].
-
-CRITICAL INSTRUCTIONS:
-1. Do NOT post any comments to the PR
-2. Do NOT use `gh pr comment` or any GitHub posting commands
-3. Perform comprehensive security analysis including:
-   - OWASP Top 10 vulnerability checks
-   - Authentication/authorization issues
-   - Input validation and sanitization
-   - Secrets/credential exposure
-   - Injection vulnerabilities (SQL, XSS, command)
-   - Insecure dependencies
-   - Cryptographic issues
-4. Capture ALL security findings with:
-   - Severity level (Critical/High/Medium/Low)
-   - CWE references where applicable
-   - Remediation guidance
-5. Format output as structured markdown
-6. Return the complete security findings
-
-Configuration:
-- Review scope: [diff-only | full-context]
-- Files: [file list if specified]
-
-Save all findings - they will be written to a markdown file.
-```
-
 ### Phase 1 Output Files
 
-After all three agents complete, write results to output directory:
+**IMPORTANT:** Use `TaskOutput` with `block: true` on BOTH agent IDs
+before proceeding. Do NOT write output files until both agents have returned.
+
+After both agents complete, write results to output directory:
 
 - `review-code-review.md` - Output from code-review:code-review
 - `review-pr-toolkit.md` - Output from pr-review-toolkit:review-pr
-- `review-security.md` - Output from security-guidance
 
 Include header in each file:
 
@@ -304,7 +323,7 @@ Include header in each file:
 
 ## Phase 2: Parallel Validation
 
-Launch **three validation agents in parallel** (using `subagent_type: "general-purpose"`) to evaluate findings:
+Launch **two validation agents in parallel** (using `subagent_type: "general-purpose"`) to evaluate findings:
 
 ### Validator 1: Evaluate code-review findings
 
@@ -352,34 +371,10 @@ Filter criteria:
 Output: Validated findings with confidence scores and reasoning.
 ```
 
-### Validator 3: Evaluate security-guidance findings
-
-```markdown
-**Task prompt for Validator 3 (Sonnet recommended):**
-
-Read and evaluate the findings in review-security.md.
-
-For each security issue found:
-1. Verify the vulnerability is real (not a false positive)
-2. Check if it's exploitable in this context
-3. Verify severity matches the actual risk
-4. Evaluate confidence level (0-100)
-5. Check if remediation is actionable
-
-Filter criteria:
-- Remove false positives and theoretical-only issues
-- Remove pre-existing vulnerabilities not introduced by this PR
-- Keep security issues with confidence >= [CONFIDENCE_THRESHOLD]
-- ALWAYS keep Critical/High severity issues regardless of threshold
-
-Output: Validated security findings with confidence scores and reasoning.
-```
-
 ### Validation Output Files
 
 - `validated-code-review.md` - Validated findings from code-review
 - `validated-pr-toolkit.md` - Validated findings from pr-review-toolkit
-- `validated-security.md` - Validated findings from security-guidance
 
 ## Phase 3: Aggregate Summary
 
@@ -398,9 +393,8 @@ Issues are considered duplicates if ANY of these match:
 **When duplicates found:**
 
 - Keep the instance with highest confidence score
-- Mark source as "2+ reviews" or "all" in Source column
+- Mark source as "both" in Source column
 - Combine unique details from all descriptions
-- Preserve security context if one source is security-guidance
 
 ### Aggregation Steps
 
@@ -417,7 +411,7 @@ Issues are considered duplicates if ANY of these match:
 
 **PR:** [PR number/branch]
 **Date:** [timestamp]
-**Reviews Run:** code-review, pr-review-toolkit, security-guidance
+**Reviews Run:** code-review, pr-review-toolkit
 **Confidence Threshold:** [threshold]%
 **Output Directory:** [path]
 
@@ -435,7 +429,7 @@ Issues are considered duplicates if ANY of these match:
 
 | # | Issue | Source | Confidence | File:Line |
 |---|-------|--------|------------|-----------|
-| 1 | [description] | [all/2+/single] | [score]% | [location] |
+| 1 | [description] | [both/single] | [score]% | [location] |
 
 ## Important Issues (Should Fix)
 
@@ -453,11 +447,9 @@ Issues are considered duplicates if ANY of these match:
 
 ## Review Agreement Analysis
 
-- **Issues found by all three reviews:** [count] (highest confidence)
-- **Issues found by 2+ reviews:** [count] (high confidence)
+- **Issues found by both reviews:** [count] (highest confidence)
 - **Issues unique to code-review:** [count]
 - **Issues unique to pr-review-toolkit:** [count]
-- **Issues unique to security-guidance:** [count]
 - **Agreement rate:** [percentage]%
 - **Overall confidence:** [high/medium/low]
 
@@ -470,7 +462,7 @@ Issues are considered duplicates if ANY of these match:
 ---
 
 *Generated by parallel-pr-review skill*
-*Review files: review-code-review.md, review-pr-toolkit.md, review-security.md*
+*Review files: review-code-review.md, review-pr-toolkit.md*
 *Validation files: validated-*.md*
 ```
 
@@ -528,12 +520,11 @@ Run parallel-pr-review --pr 123
 Run parallel-pr-review --pr 123 --confidence 80 --output-dir ./my-reviews
 ```
 
-### Review with specific reviewers only
+### Review with specific reviewer only
 
 ```bash
 Run parallel-pr-review --only code-review
-Run parallel-pr-review --only security
-Run parallel-pr-review --only code-review,security
+Run parallel-pr-review --only pr-toolkit
 ```
 
 ### Skip validation phase
@@ -566,10 +557,8 @@ Run parallel-pr-review --pr 123 --full-context
 | -------------------------- | ----- | ------------------------------ |
 | `review-code-review.md`    | 1     | Raw output from code-review    |
 | `review-pr-toolkit.md`     | 1     | Raw output from pr-toolkit     |
-| `review-security.md`       | 1     | Raw output from security       |
 | `validated-code-review.md` | 2     | Validated code-review findings |
 | `validated-pr-toolkit.md`  | 2     | Validated pr-toolkit findings  |
-| `validated-security.md`    | 2     | Validated security findings    |
 | `pr-review-summary.md`     | 3     | Final aggregated summary       |
 | `fix-suggestions.md`       | Post  | Fix suggestions (optional)     |
 
@@ -585,8 +574,8 @@ Run parallel-pr-review --pr 123 --full-context
 
 **Parallel execution:**
 
-- Phase 1: All three reviews run simultaneously
-- Phase 2: All three validators run simultaneously
+- Phase 1: Both reviews run simultaneously
+- Phase 2: Both validators run simultaneously
 - Use single Task tool message with multiple invocations for parallelism
 
 ## Error Handling
@@ -605,11 +594,9 @@ phases succeeded/failed.
 
 ## Selective Execution
 
-| Flag                 | Skips                   | Use Case                    |
-| -------------------- | ----------------------- | --------------------------- |
-| `--only code-review` | pr-toolkit, security    | Quick CLAUDE.md compliance  |
-| `--only pr-toolkit`  | code-review, security   | Multi-aspect review         |
-| `--only security`    | code-review, pr-toolkit | Security-only review        |
-| `--only X,Y`         | Excluded skill          | Custom combination          |
-| `--skip-validation`  | Phase 2                 | Trust raw results, faster   |
-| `--revalidate`       | Phase 1                 | Re-filter with new threshold|
+| Flag                 | Skips       | Use Case                    |
+| -------------------- | ----------- | --------------------------- |
+| `--only code-review` | pr-toolkit  | Quick CLAUDE.md compliance  |
+| `--only pr-toolkit`  | code-review | Multi-aspect review         |
+| `--skip-validation`  | Phase 2     | Trust raw results, faster   |
+| `--revalidate`       | Phase 1     | Re-filter with new threshold|

@@ -1,12 +1,12 @@
 # Parallel PR Review
 
-A Claude Code skill that runs three independent code review methodologies
-in parallel, validates the findings, and produces an aggregated summary.
+A Claude Code skill that runs two independent code review commands in parallel,
+validates the findings, and produces an aggregated summary.
 
 ## Why Use This?
 
 - **Multiple perspectives** catch more issues than a single review
-- **Security-focused review** identifies vulnerabilities and risks
+- **Comprehensive coverage** - `review-pr` internally uses multiple specialized agents
 - **Validation phase** filters out false positives
 - **Aggregated summary** shows agreement between reviewers
 - **No auto-posting** - you control what gets posted to the PR
@@ -31,30 +31,32 @@ Install the required plugins:
 ```bash
 /plugin install code-review@claude-plugins-official
 /plugin install pr-review-toolkit@claude-plugins-official
-/plugin install security-guidance@claude-plugins-official
 ```
+
+> **Note:** The `review-pr` command internally orchestrates multiple specialized
+> agents (including error handling analysis), providing comprehensive coverage.
 
 ## How It Works
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 0: Validate required skills exist                            │
+│  Phase 0: Validate required plugins exist                           │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │  Phase 1: Run reviews in PARALLEL                                   │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐        │
-│  │ code-review:    │ │ pr-review-      │ │ security-       │        │
-│  │ code-review     │ │ toolkit:review  │ │ guidance        │        │
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘        │
+│  ┌───────────────────────┐ ┌───────────────────────┐                │
+│  │ code-review:code-     │ │ pr-review-toolkit:    │                │
+│  │ review                │ │ review-pr             │                │
+│  └───────────────────────┘ └───────────────────────┘                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │  Phase 2: Validate findings in PARALLEL                             │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐        │
-│  │ Validator 1     │ │ Validator 2     │ │ Validator 3     │        │
-│  │ (code-review)   │ │ (pr-toolkit)    │ │ (security)      │        │
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘        │
+│  ┌───────────────────────┐ ┌───────────────────────┐                │
+│  │ Validator 1           │ │ Validator 2           │                │
+│  │ (code-review)         │ │ (pr-toolkit)          │                │
+│  └───────────────────────┘ └───────────────────────┘                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -72,12 +74,10 @@ All results are saved to `.reviews/<timestamp>/`:
 
 | File                        | Description                               |
 | --------------------------- | ----------------------------------------- |
-| `review-code-review.md`     | Raw findings from code-review skill       |
-| `review-pr-toolkit.md`      | Raw findings from pr-review-toolkit skill |
-| `review-security.md`        | Raw findings from security-guidance skill |
+| `review-code-review.md`     | Raw findings from code-review command     |
+| `review-pr-toolkit.md`      | Raw findings from review-pr command       |
 | `validated-code-review.md`  | Filtered code-review findings             |
 | `validated-pr-toolkit.md`   | Filtered pr-toolkit findings              |
-| `validated-security.md`     | Filtered security findings                |
 | `pr-review-summary.md`      | **Final aggregated report**               |
 
 ## Options
@@ -100,8 +100,8 @@ All results are saved to `.reviews/<timestamp>/`:
 | `--skip-validation` | `false`       | Skip Phase 2 for faster results  |
 | `--only <skill>`    | all           | Run subset of reviewers          |
 
-> **Shorthand names:** `pr-toolkit` = pr-review-toolkit, `security` =
-> security-guidance. Used in options and file names.
+> **Shorthand names:** `pr-toolkit` = pr-review-toolkit. Used in options and
+> file names.
 
 ## Examples
 
@@ -118,10 +118,9 @@ claude "Run parallel-pr-review --confidence 85"
 # Quick review - skip validation phase
 claude "Run parallel-pr-review --skip-validation"
 
-# Only run specific reviewers
+# Only run specific reviewer
 claude "Run parallel-pr-review --only code-review"
-claude "Run parallel-pr-review --only security"
-claude "Run parallel-pr-review --only code-review,pr-toolkit"
+claude "Run parallel-pr-review --only pr-toolkit"
 
 # Review specific files
 claude "Run parallel-pr-review --files src/auth.ts src/login.ts"
@@ -139,21 +138,18 @@ The final `pr-review-summary.md` includes:
 
 ### Source Column
 
-| Value         | Meaning                                   |
-| ------------- | ----------------------------------------- |
-| `all`         | Found by all three reviewers              |
-| `2+ reviews`  | Found by at least two reviewers           |
-| `code-review` | Only found by code-review skill           |
-| `pr-toolkit`  | Only found by pr-review-toolkit skill     |
-| `security`    | Only found by security-guidance skill     |
+| Value         | Meaning                               |
+| ------------- | ------------------------------------- |
+| `both`        | Found by both reviewers               |
+| `code-review` | Only found by code-review command     |
+| `pr-toolkit`  | Only found by review-pr command       |
 
 ### Agreement Analysis
 
-Shows how much the three reviewers agreed:
+Shows how much the two reviewers agreed:
 
 - High agreement = high confidence in findings
-- Issues found by multiple reviewers are more likely real
-- Security issues are highlighted even if found by one reviewer
+- Issues found by both reviewers are more likely real
 
 ## Post-Review Actions
 
@@ -172,12 +168,11 @@ After the review completes, you'll see an action menu:
 A: No. All output goes to markdown files. You decide what to post.
 
 **Q: How long does it take?**
-A: Depends on PR size. All three reviews and validations run in parallel,
+A: Depends on PR size. Both reviews and validations run in parallel,
 so it's much faster than running sequentially.
 
-**Q: Can I run just one or two reviewers?**
-A: Yes, use `--only code-review`, `--only security`, or combine them
-like `--only code-review,security`.
+**Q: Can I run just one reviewer?**
+A: Yes, use `--only code-review` or `--only pr-toolkit`.
 
 **Q: What if one reviewer fails?**
 A: The skill continues with available results and warns you.

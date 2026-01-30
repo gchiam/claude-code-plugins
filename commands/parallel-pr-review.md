@@ -1,12 +1,12 @@
 ---
-description: Run parallel PR review with three methodologies including security analysis
+description: Run parallel PR review with two complementary methodologies
 argument-hint: "[--pr <number>] [--confidence <0-100>] [--output-dir <path>]"
 allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Task"]
 ---
 
 # Parallel PR Review Command
 
-Run a comprehensive PR review using three independent review skills in parallel.
+Run a comprehensive PR review using two independent review commands in parallel.
 
 **Arguments:** $ARGUMENTS
 
@@ -14,11 +14,10 @@ Run a comprehensive PR review using three independent review skills in parallel.
 
 Use the `parallel-pr-review` skill to execute a multi-phase review:
 
-1. Validate required skills are installed
-2. Run three reviews in parallel:
-   - code-review:code-review
-   - pr-review-toolkit:review-pr
-   - security-guidance
+1. Validate required plugins are installed
+2. Run two reviews in parallel:
+   - code-review:code-review (comprehensive code review)
+   - pr-review-toolkit:review-pr (multi-agent review including error handling)
 3. Validate findings to filter false positives
 4. Aggregate into a deduplicated summary
 
