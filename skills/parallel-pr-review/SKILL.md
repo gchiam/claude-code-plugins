@@ -189,15 +189,20 @@ After installation, run this skill again.
 
 ## Phase 1: Parallel Review Execution
 
-Launch **three subagents in parallel** using the Task tool in a single
-message:
+Launch **three general-purpose agents in parallel** using the Task tool in a
+single message. Each agent must use `subagent_type: "general-purpose"` so it
+can invoke skills via the Skill tool.
 
-### Subagent 1: code-review:code-review
+**CRITICAL:** Do NOT use specialized subagent types like `code-reviewer` or
+`silent-failure-hunter`. These are Task agent types, not skills. You must use
+`general-purpose` agents that will invoke the actual skills.
+
+### Agent 1: code-review:code-review
 
 ```markdown
-**Task prompt for Subagent 1:**
+**Task prompt for Agent 1 (subagent_type: "general-purpose"):**
 
-Run the code-review:code-review skill on [TARGET].
+Use the Skill tool to invoke the code-review:code-review skill on [TARGET].
 
 CRITICAL INSTRUCTIONS:
 1. Do NOT post any comments to the PR
@@ -217,12 +222,12 @@ Configuration:
 Save all findings - they will be written to a markdown file.
 ```
 
-### Subagent 2: pr-review-toolkit:review-pr
+### Agent 2: pr-review-toolkit:review-pr
 
 ```markdown
-**Task prompt for Subagent 2:**
+**Task prompt for Agent 2 (subagent_type: "general-purpose"):**
 
-Run the pr-review-toolkit:review-pr skill with "all" aspects on [TARGET].
+Use the Skill tool to invoke the pr-review-toolkit:review-pr skill with "all" aspects on [TARGET].
 
 CRITICAL INSTRUCTIONS:
 1. Do NOT post any comments to the PR
@@ -243,12 +248,12 @@ Configuration:
 Save all findings - they will be written to a markdown file.
 ```
 
-### Subagent 3: security-guidance
+### Agent 3: security-guidance
 
 ```markdown
-**Task prompt for Subagent 3:**
+**Task prompt for Agent 3 (subagent_type: "general-purpose"):**
 
-Run the security-guidance skill on [TARGET].
+Use the Skill tool to invoke the security-guidance skill on [TARGET].
 
 CRITICAL INSTRUCTIONS:
 1. Do NOT post any comments to the PR
@@ -277,7 +282,7 @@ Save all findings - they will be written to a markdown file.
 
 ### Phase 1 Output Files
 
-After all three subagents complete, write results to output directory:
+After all three agents complete, write results to output directory:
 
 - `review-code-review.md` - Output from code-review:code-review
 - `review-pr-toolkit.md` - Output from pr-review-toolkit:review-pr
@@ -299,7 +304,7 @@ Include header in each file:
 
 ## Phase 2: Parallel Validation
 
-Launch **three validation subagents in parallel** to evaluate findings:
+Launch **three validation agents in parallel** (using `subagent_type: "general-purpose"`) to evaluate findings:
 
 ### Validator 1: Evaluate code-review findings
 
