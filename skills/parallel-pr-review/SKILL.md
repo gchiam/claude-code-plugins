@@ -1,19 +1,28 @@
 ---
 name: parallel-pr-review
-description: Use when reviewing a PR or set of changed files with comprehensive multi-perspective analysis, when wanting parallel code reviews from different methodologies, or when needing validated and aggregated review findings
+description: >-
+  Use when reviewing a PR or set of changed files with comprehensive
+  multi-perspective analysis, when wanting parallel code reviews from
+  different methodologies, or when needing validated and aggregated
+  review findings
 ---
 
 # Parallel PR Review
 
 ## Overview
 
-This skill orchestrates comprehensive PR reviews by running two independent review methodologies in parallel, validating their findings, and producing an aggregated summary. Reviews are saved to markdown files and **never posted directly to the PR**.
+This skill orchestrates comprehensive PR reviews by running two independent
+review methodologies in parallel, validating their findings, and producing
+an aggregated summary. Reviews are saved to markdown files and **never
+posted directly to the PR**.
 
-**Core principle:** Multiple review perspectives catch more issues. Validation filters false positives. Aggregation provides actionable summary.
+**Core principle:** Multiple review perspectives catch more issues.
+Validation filters false positives. Aggregation provides actionable summary.
 
 ## Workflow
 
-> **Note:** The diagram below uses Mermaid syntax. If it doesn't render in your viewer, see the ASCII version in [README.md](README.md#how-it-works).
+> **Note:** The diagram below uses Mermaid syntax. If it doesn't render
+> in your viewer, see the ASCII version in [README.md](README.md#how-it-works).
 
 ```mermaid
 flowchart TB
@@ -67,34 +76,38 @@ flowchart TB
 
 Specify what to review using these options:
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `--pr <number>` | Review a specific PR | `--pr 123` |
-| `--branch <name>` | Review changes on branch vs main/master | `--branch feature/auth` |
-| `--files <paths>` | Review specific files only | `--files src/auth.ts src/login.ts` |
-| `--base <ref>` | Compare against specific base ref | `--base develop` |
-| `--diff-only` | Review only changed lines (default) | |
-| `--full-context` | Review entire files for full context | |
+| Option            | Description                        | Example            |
+| ----------------- | ---------------------------------- | ------------------ |
+| `--pr <number>`   | Review a specific PR               | `--pr 123`         |
+| `--branch <name>` | Review branch vs main/master       | `--branch feat/x`  |
+| `--files <paths>` | Review specific files only         | `--files src/*.ts` |
+| `--base <ref>`    | Compare against specific base ref  | `--base develop`   |
+| `--diff-only`     | Review only changed lines (default)|                    |
+| `--full-context`  | Review entire files for context    |                    |
 
 **Default behavior:** If no options specified, detect from current git state:
+
 1. If on a branch with open PR → review that PR
 2. If on a branch with uncommitted changes → review staged/unstaged changes
 3. If on a branch ahead of main → review commits since divergence
 
 ## Configuration
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--output-dir <path>` | Directory for review files | `./.reviews/` |
-| `--confidence <0-100>` | Minimum confidence threshold | `70` |
-| `--skip-validation` | Skip Phase 2, use raw results | `false` |
-| `--only <skill>` | Run only one review skill (`code-review` or `pr-toolkit`) | both |
-| `--revalidate` | Re-run Phase 2-3 on existing files | `false` |
+| Option              | Description                  | Default       |
+| ------------------- | ---------------------------- | ------------- |
+| `--output-dir`      | Directory for review files   | `./.reviews/` |
+| `--confidence`      | Min confidence threshold     | `70`          |
+| `--skip-validation` | Skip Phase 2, use raw results| `false`       |
+| `--only <skill>`    | Run only one review skill    | both          |
+| `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
 
-> **Naming convention:** `pr-toolkit` is shorthand for `pr-review-toolkit`. This shorthand is used in options and output file names (e.g., `review-pr-toolkit.md`).
+> **Naming convention:** `pr-toolkit` is shorthand for `pr-review-toolkit`.
+> This shorthand is used in options and output file names
+> (e.g., `review-pr-toolkit.md`).
 
 **Output directory structure:**
-```
+
+```text
 .reviews/
 └── 2024-01-23-143052/           # Timestamped run
     ├── review-code-review.md
@@ -106,22 +119,25 @@ Specify what to review using these options:
 
 ## Model Recommendations
 
-The following model recommendations optimize for quality per phase. Note that actual model selection depends on user configuration and Claude Code settings - this skill cannot enforce specific models.
+The following model recommendations optimize for quality per phase. Note
+that actual model selection depends on user configuration and Claude Code
+settings - this skill cannot enforce specific models.
 
-| Phase | Task | Recommended | Rationale |
-|-------|------|-------------|-----------|
-| 0 | Validate skills | Haiku | Simple existence check |
-| 1 | Run reviews | Opus | Deep analysis, highest quality |
-| 2 | Validate findings | Sonnet | Filtering/scoring needs good judgment |
-| 3 | Aggregate summary | Opus | Synthesis needs advanced reasoning |
+| Phase | Task              | Model  | Rationale                     |
+| ----- | ----------------- | ------ | ----------------------------- |
+| 0     | Validate skills   | Haiku  | Simple existence check        |
+| 1     | Run reviews       | Opus   | Deep analysis, high quality   |
+| 2     | Validate findings | Sonnet | Filtering needs good judgment |
+| 3     | Aggregate summary | Opus   | Synthesis needs reasoning     |
 
-When spawning subagents with the Task tool, you may specify a `model` parameter (e.g., `"model": "haiku"`) but this is a hint, not a guarantee.
+When spawning subagents with the Task tool, you may specify a `model`
+parameter (e.g., `"model": "haiku"`) but this is a hint, not a guarantee.
 
 ## Progress Reporting
 
 Display progress during execution:
 
-```
+```text
 Parallel PR Review - PR #123
 ════════════════════════════════════════
 
@@ -144,10 +160,11 @@ Before proceeding, verify both required skills are available:
 
 **Validation steps:**
 
-1. Check if both plugins are installed by looking for them in the available skills/commands
+1. Check if both plugins are installed by looking for them in the
+   available skills/commands
 2. If either skill is missing, **STOP** and display the following message:
 
-```
+```text
 Missing required plugin(s). Install using /plugin command:
 
 /plugin install code-review@claude-plugins-official
@@ -156,7 +173,7 @@ Missing required plugin(s). Install using /plugin command:
 After installation, run this skill again.
 ```
 
-3. Only proceed to Phase 1 if BOTH skills are confirmed available
+1. Only proceed to Phase 1 if BOTH skills are confirmed available
 
 ## Phase 1: Parallel Review Execution
 
@@ -213,7 +230,7 @@ Configuration:
 Save all findings - they will be written to a markdown file.
 ```
 
-### Output Files
+### Phase 1 Output Files
 
 After both subagents complete, write results to output directory:
 
@@ -221,6 +238,7 @@ After both subagents complete, write results to output directory:
 - `review-pr-toolkit.md` - Output from pr-review-toolkit:review-pr
 
 Include header in each file:
+
 ```markdown
 # Code Review Results
 
@@ -296,13 +314,14 @@ After validation completes, generate a comprehensive summary:
 
 Issues are considered duplicates if ANY of these match:
 
-| Criteria | Threshold |
-|----------|-----------|
-| Same file + line range | Within 5 lines |
-| Issue description similarity | >80% semantic match |
-| Same code snippet referenced | Exact match |
+| Criteria                       | Threshold            |
+| ------------------------------ | -------------------- |
+| Same file + line range         | Within 5 lines       |
+| Issue description similarity   | >80% semantic match  |
+| Same code snippet referenced   | Exact match          |
 
 **When duplicates found:**
+
 - Keep the instance with highest confidence score
 - Mark as "Found by both reviews" in Source column
 - Combine unique details from both descriptions
@@ -371,7 +390,7 @@ Issues are considered duplicates if ANY of these match:
 *Validation files: validated-code-review.md, validated-pr-toolkit.md*
 ```
 
-### Output Files
+### Phase 3 Output Files
 
 - `pr-review-summary.md` - Final aggregated report
 
@@ -379,7 +398,7 @@ Issues are considered duplicates if ANY of these match:
 
 After summary is generated, offer an action menu:
 
-```
+```text
 Review complete! Found 3 critical, 5 important issues.
 
 What would you like to do?
@@ -396,80 +415,81 @@ Select action (1-6):
 
 ### Action Details
 
-| Action | Description | Notes |
-|--------|-------------|-------|
-| **View** | Open summary in editor/pager | Default action |
-| **Fix** | Generate code fix suggestions | Creates `fix-suggestions.md` |
-| **Issues** | Create GitHub issues | One issue per critical item |
-| **Comment** | Post to PR | Requires explicit user approval |
-| **Rerun** | Re-run on subset | Useful after partial fixes |
-| **Done** | Exit skill | No further action |
+| Action      | Description              | Notes                       |
+| ----------- | ------------------------ | --------------------------- |
+| **View**    | Open summary in editor   | Default action              |
+| **Fix**     | Generate fix suggestions | Creates `fix-suggestions.md`|
+| **Issues**  | Create GitHub issues     | One issue per critical item |
+| **Comment** | Post to PR               | Requires user approval      |
+| **Rerun**   | Re-run on subset         | Useful after partial fixes  |
+| **Done**    | Exit skill               | No further action           |
 
 ## Usage Examples
 
 ### Basic usage (auto-detect)
 
-```
+```bash
 Run parallel-pr-review
 ```
 
 ### Review specific PR
 
-```
+```bash
 Run parallel-pr-review --pr 123
 ```
 
 ### Review with custom settings
 
-```
+```bash
 Run parallel-pr-review --pr 123 --confidence 80 --output-dir ./my-reviews
 ```
 
 ### Review only with one skill
 
-```
+```bash
 Run parallel-pr-review --only code-review
 Run parallel-pr-review --only pr-toolkit
 ```
 
 ### Skip validation phase
 
-```
+```bash
 Run parallel-pr-review --skip-validation
 ```
 
 ### Re-run validation on existing results
 
-```
+```bash
 Run parallel-pr-review --revalidate --output-dir ./.reviews/2024-01-23-143052
 ```
 
 ### Review specific files
 
-```
+```bash
 Run parallel-pr-review --files src/auth/*.ts src/api/login.ts
 ```
 
 ### Full context review (not just diff)
 
-```
+```bash
 Run parallel-pr-review --pr 123 --full-context
 ```
 
 ## Output Files Summary
 
-| File | Phase | Contents |
-|------|-------|----------|
-| `review-code-review.md` | 1 | Raw output from code-review skill |
-| `review-pr-toolkit.md` | 1 | Raw output from pr-review-toolkit skill |
-| `validated-code-review.md` | 2 | Validated/filtered code-review findings |
-| `validated-pr-toolkit.md` | 2 | Validated/filtered pr-toolkit findings |
-| `pr-review-summary.md` | 3 | Final aggregated summary |
-| `fix-suggestions.md` | Post | Generated fix suggestions (optional) |
+| File                       | Phase | Contents                       |
+| -------------------------- | ----- | ------------------------------ |
+| `review-code-review.md`    | 1     | Raw output from code-review    |
+| `review-pr-toolkit.md`     | 1     | Raw output from pr-toolkit     |
+| `validated-code-review.md` | 2     | Validated code-review findings |
+| `validated-pr-toolkit.md`  | 2     | Validated pr-toolkit findings  |
+| `pr-review-summary.md`     | 3     | Final aggregated summary       |
+| `fix-suggestions.md`       | Post  | Fix suggestions (optional)     |
 
 ## Important Constraints
 
 **DO NOT post to PR:**
+
 - Never use `gh pr comment`
 - Never use `gh pr review`
 - All output goes to markdown files only
@@ -477,28 +497,30 @@ Run parallel-pr-review --pr 123 --full-context
 - Post action requires explicit approval
 
 **Parallel execution:**
+
 - Phase 1: Both reviews run simultaneously
 - Phase 2: Both validators run simultaneously
 - Use single Task tool message with multiple invocations for true parallelism
 
 ## Error Handling
 
-| Scenario | Behavior |
-|----------|----------|
-| One skill fails in Phase 1 | Continue with available results, warn user |
-| Both skills fail in Phase 1 | Abort with error details |
-| Validation fails | Use unvalidated results with warning |
-| Output directory not writable | Fallback to current directory |
-| PR not found | Prompt for correct PR number |
-| No changes detected | Exit with "nothing to review" message |
+| Scenario                      | Behavior                             |
+| ----------------------------- | ------------------------------------ |
+| One skill fails in Phase 1    | Continue with available, warn user   |
+| Both skills fail in Phase 1   | Abort with error details             |
+| Validation fails              | Use unvalidated results with warning |
+| Output directory not writable | Fallback to current directory        |
+| PR not found                  | Prompt for correct PR number         |
+| No changes detected           | Exit with "nothing to review" message|
 
-**Always produce summary even with partial results** - indicate which phases succeeded/failed.
+**Always produce summary even with partial results** - indicate which
+phases succeeded/failed.
 
 ## Selective Execution
 
-| Flag | Skips | Use Case |
-|------|-------|----------|
-| `--only code-review` | pr-review-toolkit | Quick CLAUDE.md compliance check |
-| `--only pr-toolkit` | code-review | Comprehensive multi-aspect review |
-| `--skip-validation` | Phase 2 | Trust raw results, faster execution |
-| `--revalidate` | Phase 1 | Re-filter with different threshold |
+| Flag                 | Skips             | Use Case                      |
+| -------------------- | ----------------- | ----------------------------- |
+| `--only code-review` | pr-review-toolkit | Quick CLAUDE.md compliance    |
+| `--only pr-toolkit`  | code-review       | Comprehensive multi-aspect    |
+| `--skip-validation`  | Phase 2           | Trust raw results, faster     |
+| `--revalidate`       | Phase 1           | Re-filter with new threshold  |

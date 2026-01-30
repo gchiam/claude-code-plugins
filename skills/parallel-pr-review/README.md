@@ -1,6 +1,7 @@
 # Parallel PR Review
 
-A Claude Code skill that runs two independent code review methodologies in parallel, validates the findings, and produces an aggregated summary.
+A Claude Code skill that runs two independent code review methodologies
+in parallel, validates the findings, and produces an aggregated summary.
 
 ## Why Use This?
 
@@ -26,14 +27,14 @@ claude "Run parallel-pr-review --pr 123 --confidence 80"
 
 Install the required plugins:
 
-```
+```bash
 /plugin install code-review@claude-plugins-official
 /plugin install pr-review-toolkit@claude-plugins-official
 ```
 
 ## How It Works
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────┐
 │  Phase 0: Validate required skills exist                       │
 └────────────────────────────────────────────────────────────────┘
@@ -67,35 +68,36 @@ Install the required plugins:
 
 All results are saved to `.reviews/<timestamp>/`:
 
-| File | Description |
-|------|-------------|
-| `review-code-review.md` | Raw findings from code-review skill |
-| `review-pr-toolkit.md` | Raw findings from pr-review-toolkit skill |
-| `validated-code-review.md` | Filtered findings (false positives removed) |
-| `validated-pr-toolkit.md` | Filtered findings (false positives removed) |
-| `pr-review-summary.md` | **Final aggregated report** |
+| File                       | Description                                |
+| -------------------------- | ------------------------------------------ |
+| `review-code-review.md`    | Raw findings from code-review skill        |
+| `review-pr-toolkit.md`     | Raw findings from pr-review-toolkit skill  |
+| `validated-code-review.md` | Filtered findings (false positives removed)|
+| `validated-pr-toolkit.md`  | Filtered findings (false positives removed)|
+| `pr-review-summary.md`     | **Final aggregated report**                |
 
 ## Options
 
 ### Input Options
 
-| Option | Description |
-|--------|-------------|
-| `--pr <number>` | Review a specific PR |
-| `--branch <name>` | Review branch changes vs main |
-| `--files <paths>` | Review specific files only |
-| `--full-context` | Review entire files, not just diff |
+| Option            | Description                       |
+| ----------------- | --------------------------------- |
+| `--pr <number>`   | Review a specific PR              |
+| `--branch <name>` | Review branch changes vs main     |
+| `--files <paths>` | Review specific files only        |
+| `--full-context`  | Review entire files, not just diff|
 
 ### Configuration
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--output-dir` | `./.reviews/` | Where to save results |
-| `--confidence` | `70` | Minimum confidence to include (0-100) |
-| `--skip-validation` | `false` | Skip Phase 2 for faster results |
-| `--only <skill>` | both | Run only `code-review` or `pr-toolkit` |
+| Option              | Default       | Description                      |
+| ------------------- | ------------- | -------------------------------- |
+| `--output-dir`      | `./.reviews/` | Where to save results            |
+| `--confidence`      | `70`          | Min confidence to include (0-100)|
+| `--skip-validation` | `false`       | Skip Phase 2 for faster results  |
+| `--only <skill>`    | both          | Run only one reviewer skill      |
 
-> **Note:** `pr-toolkit` is shorthand for the `pr-review-toolkit` plugin. File names also use this shorthand (e.g., `review-pr-toolkit.md`).
+> **Note:** `pr-toolkit` is shorthand for the `pr-review-toolkit` plugin.
+> File names also use this shorthand (e.g., `review-pr-toolkit.md`).
 
 ## Examples
 
@@ -131,15 +133,16 @@ The final `pr-review-summary.md` includes:
 
 ### Source Column
 
-| Value | Meaning |
-|-------|---------|
-| `both` | Found by both reviewers (high confidence) |
-| `code-review` | Only found by code-review skill |
-| `pr-toolkit` | Only found by pr-review-toolkit skill |
+| Value         | Meaning                                  |
+| ------------- | ---------------------------------------- |
+| `both`        | Found by both reviewers (high confidence)|
+| `code-review` | Only found by code-review skill          |
+| `pr-toolkit`  | Only found by pr-review-toolkit skill    |
 
 ### Agreement Analysis
 
 Shows how much the two reviewers agreed:
+
 - High agreement = high confidence in findings
 - Issues found by both reviewers are more likely real
 
@@ -160,7 +163,8 @@ After the review completes, you'll see an action menu:
 A: No. All output goes to markdown files. You decide what to post.
 
 **Q: How long does it take?**
-A: Depends on PR size. Phases 1 and 2 run in parallel, so it's faster than running sequentially.
+A: Depends on PR size. Phases 1 and 2 run in parallel, so it's faster
+than running sequentially.
 
 **Q: Can I run just one reviewer?**
 A: Yes, use `--only code-review` or `--only pr-toolkit`.
@@ -169,13 +173,14 @@ A: Yes, use `--only code-review` or `--only pr-toolkit`.
 A: The skill continues with available results and warns you.
 
 **Q: How do I adjust sensitivity?**
-A: Use `--confidence`. Higher values (80-90) = fewer but more certain issues. Lower values (50-60) = more issues but more false positives.
+A: Use `--confidence`. Higher values (80-90) = fewer but more certain
+issues. Lower values (50-60) = more issues but more false positives.
 
 ## Files
 
 When installed as a plugin, files are located within the plugin directory:
 
-```
+```text
 <plugin-dir>/skills/parallel-pr-review/
 ├── SKILL.md   # Instructions for Claude (technical)
 └── README.md  # This file (human documentation)
