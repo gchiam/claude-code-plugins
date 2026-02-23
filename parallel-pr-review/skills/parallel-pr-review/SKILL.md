@@ -9,18 +9,30 @@ description: >-
 
 # Parallel PR Review
 
-## CRITICAL: Task Tool Configuration
+## CRITICAL: How to Launch Review Agents
 
-**YOU MUST USE THESE EXACT PARAMETERS.** Do NOT use specialized subagent types.
+You MUST use `"subagent_type": "general-purpose"` for every review agent.
+The reason this matters is that specialized subagent types like
+`coderabbit:code-reviewer` or `superpowers:code-reviewer` bypass the Skill
+tool and miss standalone commands like `/security-review`. Using
+`general-purpose` agents that invoke commands via the Skill tool is the only
+way to get consistent behavior across all review command types.
 
-When launching review agents, each must use `subagent_type: "general-purpose"`:
+**DO NOT use these subagent types** (they exist in the Task tool list but
+are the wrong approach here):
+- `code-reviewer`
+- `coderabbit:code-reviewer`
+- `superpowers:code-reviewer`
+- `pr-review-toolkit:code-reviewer`
+- `feature-dev:code-reviewer`
+
+**USE THIS for every review agent:**
 
 ```jsonc
-// Each review agent - MUST use general-purpose
 {
   "subagent_type": "general-purpose",
-  "description": "<review-command-name> agent",
-  "prompt": "Use the Skill tool to invoke <command-name> on PR #[NUMBER]. Do NOT post comments to PR. Return all findings as markdown.",
+  "description": "<short description>",
+  "prompt": "Use the Skill tool to invoke <skill-name> on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
@@ -31,18 +43,10 @@ After launching background agents, you MUST wait for ALL to complete before
 proceeding to write output files. Use `TaskOutput` tool with `block: true`:
 
 ```jsonc
-// Wait for each agent - call these BEFORE writing any output files
 {"task_id": "[agent-id]", "block": true, "timeout": 300000}
 ```
 
 **DO NOT proceed to Phase 2 or write output files until ALL agents complete.**
-
-### WRONG (do not do this):
-- **[X]** `"subagent_type": "code-reviewer"` - Use `general-purpose` + Skill tool instead
-- **[X]** `"subagent_type": "pr-review-toolkit:code-reviewer"` - Use `general-purpose` + Skill tool instead
-
-### CORRECT (do this):
-- **[OK]** `"subagent_type": "general-purpose"` - Then use Skill tool to invoke the command
 
 ---
 
@@ -151,87 +155,98 @@ Specify what to review using these options:
 Instead of requiring specific plugins, discover what review commands are
 available in the current environment.
 
-**Where to look:** Check the list of available skills shown in the
-system-reminder messages in the conversation. This list contains entries like:
+**Step 1: Find the skill list.** Look at the system-reminder messages earlier
+in the conversation for the block that starts with "The following skills are
+available for use with the Skill tool:". This is the authoritative list.
 
-```
-- code-review:code-review: Code review a pull request
-- coderabbit:review: Run CodeRabbit AI code review on your changes
-- pr-review-toolkit:review-pr: Comprehensive PR review using specialized agents
-- security-review: Complete a security review of the pending changes
-```
+**Step 2: Extract review-related entries.** Go through every line in that
+list and pick out entries whose name or description mentions "review",
+"code review", "PR review", "security review", or "code quality".
 
-Note that some commands use the `plugin:command` format (like
-`code-review:code-review`) while others are standalone names (like
-`security-review`). Look for both formats.
+Here are examples of what to look for (your environment may differ):
 
-**Discovery rules:**
+| Skill list entry | Invoke as |
+|------------------|-----------|
+| `code-review:code-review: Code review a pull request` | `code-review:code-review` |
+| `coderabbit:review: Run CodeRabbit AI code review...` | `coderabbit:review` |
+| `coderabbit:code-review: Reviews code changes using CodeRabbit AI...` | `coderabbit:code-review` |
+| `pr-review-toolkit:review-pr: Comprehensive PR review...` | `pr-review-toolkit:review-pr` |
+| `security-review: Complete a security review...` | `security-review` |
 
-1. Scan the full list of available skills for anything related to code review,
-   PR review, or security review. Match on names or descriptions containing:
-   "review", "code review", "PR review", "security review", "code quality".
-   Include both `plugin:command` format and standalone command names.
-2. **Exclude this skill itself** (`parallel-pr-review`) and any skill whose
-   name contains `parallel-pr-review` to avoid recursion.
-3. Select up to 3 review commands to run in parallel. If more than 3 are
-   available, prefer commands that offer different perspectives (e.g., one
-   general code review, one security-focused, one style/quality focused).
-4. If zero review commands are found, **STOP** and inform the user that no
-   review commands are available and suggest installing review plugins.
+Note: some are `plugin:command` format, others are standalone names. Both
+are valid and should be included.
 
-**Report what was discovered:**
+**Step 3: Filter.**
+- Exclude anything containing `parallel-pr-review` (this skill — avoids recursion).
+- If the same plugin appears twice with different command names (e.g.,
+  `coderabbit:review` and `coderabbit:code-review`), pick only one.
+- Select up to 3 commands. If more are available, prefer diversity of
+  perspective (general review, security review, style/quality review).
+
+**Step 4: Report.**
 
 ```text
 Parallel PR Review - PR #123
 ════════════════════════════════════════
 
 [✓] Phase 0: Discovered N review commands:
-    ├── /code-review:code-review
-    ├── /pr-review-toolkit:review-pr
-    └── /security-review
+    ├── code-review:code-review
+    ├── security-review
+    └── coderabbit:review
 ```
+
+If zero review commands are found, **STOP** and inform the user to install
+review plugins.
 
 ## Phase 1: Parallel Review Execution
 
-> **STOP! Before proceeding, review the "CRITICAL: Task Tool Configuration"
-> section at the top of this document.** All agents use `general-purpose`.
+Launch **one agent per discovered review command** in a single Task tool
+message. Every agent MUST use `subagent_type: "general-purpose"` — see the
+"CRITICAL: How to Launch Review Agents" section at the top of this document.
 
-Launch **one general-purpose agent per discovered review command** using the
-Task tool in a single message. Each agent must use
-`subagent_type: "general-purpose"` so it can invoke commands via the Skill tool.
+**Concrete example** — if Phase 0 discovered `code-review:code-review`,
+`security-review`, and `coderabbit:review`, launch exactly these three
+Task tool calls in one message:
 
-**CRITICAL:** Do NOT use specialized subagent types. You must use
-`general-purpose` agents that invoke the commands via the Skill tool.
+```jsonc
+// Agent 1
+{
+  "subagent_type": "general-purpose",
+  "description": "code-review agent",
+  "prompt": "Use the Skill tool to invoke code-review:code-review on PR #123. Do NOT post comments to PR. Return all findings as markdown.",
+  "run_in_background": true
+}
+// Agent 2
+{
+  "subagent_type": "general-purpose",
+  "description": "security-review agent",
+  "prompt": "Use the Skill tool to invoke security-review on PR #123. Do NOT post comments to PR. Return all findings as markdown.",
+  "run_in_background": true
+}
+// Agent 3
+{
+  "subagent_type": "general-purpose",
+  "description": "coderabbit review agent",
+  "prompt": "Use the Skill tool to invoke coderabbit:review on PR #123. Do NOT post comments to PR. Return all findings as markdown.",
+  "run_in_background": true
+}
+```
 
-**Verification checkpoint:** Before calling the Task tool, confirm:
-- [ ] All agents use `"subagent_type": "general-purpose"`
-- [ ] All agent prompts start with "Use the Skill tool to invoke..."
-- [ ] No agent uses specialized subagent types like `code-reviewer`
+For each agent, the prompt should follow this structure:
 
-### Agent prompt template
-
-For each discovered review command, launch an agent with this prompt structure:
-
-```markdown
-**Task prompt for agent (subagent_type: "general-purpose"):**
-
-Use the Skill tool to invoke <COMMAND_NAME> on [TARGET].
+```
+Use the Skill tool to invoke <SKILL_NAME> on [TARGET].
 
 CRITICAL INSTRUCTIONS:
 1. Do NOT post any comments to the PR
 2. Do NOT use `gh pr comment` or any GitHub posting commands
-3. Capture ALL review output including:
-   - Issues found with severity levels
-   - Bug detection results
-   - Security concerns (if applicable)
+3. Capture ALL review output including issues, severity levels, and locations
 4. Format output as structured markdown
 5. Return the complete review findings
 
 Configuration:
 - Review scope: [diff-only | full-context]
 - Files: [file list if specified]
-
-Save all findings - they will be written to a markdown file.
 ```
 
 ### Phase 1 Output Files
