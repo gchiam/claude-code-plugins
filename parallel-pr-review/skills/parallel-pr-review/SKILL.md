@@ -149,15 +149,30 @@ Specify what to review using these options:
 ## Phase 0: Discover Available Review Commands
 
 Instead of requiring specific plugins, discover what review commands are
-available in the current environment. Look at the available skills and
-commands for anything related to code review, PR review, or security review.
+available in the current environment.
+
+**Where to look:** Check the list of available skills shown in the
+system-reminder messages in the conversation. This list contains entries like:
+
+```
+- code-review:code-review: Code review a pull request
+- coderabbit:review: Run CodeRabbit AI code review on your changes
+- pr-review-toolkit:review-pr: Comprehensive PR review using specialized agents
+- security-review: Complete a security review of the pending changes
+```
+
+Note that some commands use the `plugin:command` format (like
+`code-review:code-review`) while others are standalone names (like
+`security-review`). Look for both formats.
 
 **Discovery rules:**
 
-1. Look through available skills/commands for review-related ones. These
-   typically have names or descriptions containing: "review", "code review",
-   "PR review", "security review", "code quality", etc.
-2. **Exclude this skill itself** (`parallel-pr-review`) to avoid recursion.
+1. Scan the full list of available skills for anything related to code review,
+   PR review, or security review. Match on names or descriptions containing:
+   "review", "code review", "PR review", "security review", "code quality".
+   Include both `plugin:command` format and standalone command names.
+2. **Exclude this skill itself** (`parallel-pr-review`) and any skill whose
+   name contains `parallel-pr-review` to avoid recursion.
 3. Select up to 3 review commands to run in parallel. If more than 3 are
    available, prefer commands that offer different perspectives (e.g., one
    general code review, one security-focused, one style/quality focused).
