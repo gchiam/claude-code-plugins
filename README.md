@@ -10,8 +10,9 @@ Personal collection of Claude Code plugins.
 # Step 1: Add the marketplace
 /plugin marketplace add gchiam/claude-code-plugins
 
-# Step 2: Install the plugin
-/plugin install gchiam-claude-code-plugins@gchiam/claude-code-plugins
+# Step 2: Install individual plugins
+/plugin install parallel-pr-review@gchiam-plugins
+/plugin install jira-cli@gchiam-plugins
 ```
 
 ### From local clone
@@ -26,11 +27,12 @@ git clone https://github.com/gchiam/claude-code-plugins.git
 ## Uninstallation
 
 ```bash
-# Remove the plugin
-/plugin uninstall gchiam-claude-code-plugins
+# Remove individual plugins
+/plugin uninstall parallel-pr-review
+/plugin uninstall jira-cli
 
 # Optionally remove the marketplace
-/plugin marketplace remove gchiam/claude-code-plugins
+/plugin marketplace remove gchiam-plugins
 ```
 
 ## Available Plugins
@@ -60,32 +62,61 @@ Or use the command:
 - Configurable confidence threshold
 - No auto-posting to PR
 
-See [skills/parallel-pr-review/README.md](skills/parallel-pr-review/README.md)
+See [parallel-pr-review/skills/parallel-pr-review/README.md](parallel-pr-review/skills/parallel-pr-review/README.md)
 for full documentation.
 
-## Prerequisites
-
-Some skills require other plugins to be installed:
+**Prerequisites:**
 
 ```bash
 /plugin install code-review@claude-plugins-official
 /plugin install pr-review-toolkit@claude-plugins-official
 ```
 
+### jira-cli
+
+Interact with Jira from the command line using
+[jira-cli](https://github.com/ankitpokhrel/jira-cli). Covers issue management,
+sprints, epics, boards, and common workflows.
+
+**Usage:**
+
+```text
+"Show my open Jira tickets"
+"Create a bug for the login crash"
+"Move PROJ-123 to Done"
+```
+
+**Features:**
+
+- Non-interactive mode by default (safe for agent use)
+- Decision guidance for flags vs JQL filtering
+- Output parsing for plain text and JSON
+- Multi-step workflow patterns
+- Error handling and recovery guidance
+
+**Prerequisites:**
+
+- [jira-cli](https://github.com/ankitpokhrel/jira-cli) installed and configured (`jira init`)
+- `JIRA_API_TOKEN` environment variable set
+
 ## Structure
 
 ```text
 claude-code-plugins/
 ├── .claude-plugin/
-│   ├── plugin.json            # Plugin manifest
-│   └── marketplace.json       # Marketplace definition
-├── commands/
-│   └── parallel-pr-review.md  # /parallel-pr-review command
-├── skills/
-│   └── parallel-pr-review/
-│       ├── SKILL.md           # Skill instructions (for Claude)
-│       └── README.md          # Documentation (for humans)
-└── README.md                  # This file
+│   └── marketplace.json                  # Marketplace catalog
+├── parallel-pr-review/                   # PR review plugin
+│   ├── .claude-plugin/plugin.json
+│   ├── commands/parallel-pr-review.md
+│   └── skills/parallel-pr-review/
+│       ├── SKILL.md
+│       └── README.md
+├── jira-cli/                             # Jira CLI plugin
+│   ├── .claude-plugin/plugin.json
+│   └── skills/jira-cli/
+│       ├── SKILL.md
+│       └── references/commands.md
+└── README.md
 ```
 
 ## Development
@@ -93,8 +124,9 @@ claude-code-plugins/
 To test changes locally:
 
 ```bash
-# Run Claude with the plugin (from repo root)
-claude --plugin-dir .
+# Run Claude with a specific plugin directory
+claude --plugin-dir ./parallel-pr-review
+claude --plugin-dir ./jira-cli
 ```
 
 ## License
