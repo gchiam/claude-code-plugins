@@ -14,7 +14,7 @@ description: >-
 You MUST use `"subagent_type": "general-purpose"` for every review agent.
 The reason this matters is that specialized subagent types like
 `coderabbit:code-reviewer` or `superpowers:code-reviewer` bypass the Skill
-tool and miss standalone commands like `/security-review`. Using
+tool and miss standalone commands like `security-review`. Using
 `general-purpose` agents that invoke commands via the Skill tool is the only
 way to get consistent behavior across all review command types.
 
@@ -32,7 +32,7 @@ are the wrong approach here):
 {
   "subagent_type": "general-purpose",
   "description": "<short description>",
-  "prompt": "Use the Skill tool to invoke <skill-name> on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
+  "prompt": "Use the Skill tool to invoke <SKILL_NAME> on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
@@ -173,13 +173,16 @@ Here are examples of what to look for (your environment may differ):
 | `pr-review-toolkit:review-pr: Comprehensive PR review...` | `pr-review-toolkit:review-pr` |
 | `security-review: Complete a security review...` | `security-review` |
 
-Note: some are `plugin:command` format, others are standalone names. Both
-are valid and should be included.
+Note: skills appear in both `plugin:command` format and standalone names.
+Both are valid and should be included. Only include skills that actually
+appear in the list — do not assume any specific skill is available.
 
 **Step 3: Filter.**
 - Exclude anything containing `parallel-pr-review` (this skill — avoids recursion).
 - If the same plugin appears twice with different command names (e.g.,
-  `coderabbit:review` and `coderabbit:code-review`), pick only one.
+  `coderabbit:review` and `coderabbit:code-review`), pick only one
+  (prefer the variant whose name most closely matches the review goal,
+  or the first listed if unclear).
 - Select up to 3 commands. If more are available, prefer diversity of
   perspective (general review, security review, style/quality review).
 
@@ -191,8 +194,8 @@ Parallel PR Review - PR #123
 
 [✓] Phase 0: Discovered N review commands:
     ├── code-review:code-review
-    ├── security-review
-    └── coderabbit:review
+    ├── coderabbit:review
+    └── pr-review-toolkit:review-pr
 ```
 
 If zero review commands are found, **STOP** and inform the user to install
@@ -205,29 +208,29 @@ message. Every agent MUST use `subagent_type: "general-purpose"` — see the
 "CRITICAL: How to Launch Review Agents" section at the top of this document.
 
 **Concrete example** — if Phase 0 discovered `code-review:code-review`,
-`security-review`, and `coderabbit:review`, launch exactly these three
-Task tool calls in one message:
+`coderabbit:review`, and `pr-review-toolkit:review-pr`, launch exactly
+these three Task tool calls in one message:
 
 ```jsonc
 // Agent 1
 {
   "subagent_type": "general-purpose",
   "description": "code-review agent",
-  "prompt": "Use the Skill tool to invoke code-review:code-review on PR #123. Do NOT post comments to PR. Return all findings as markdown.",
+  "prompt": "Use the Skill tool to invoke code-review:code-review on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 // Agent 2
 {
   "subagent_type": "general-purpose",
-  "description": "security-review agent",
-  "prompt": "Use the Skill tool to invoke security-review on PR #123. Do NOT post comments to PR. Return all findings as markdown.",
+  "description": "coderabbit review agent",
+  "prompt": "Use the Skill tool to invoke coderabbit:review on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 // Agent 3
 {
   "subagent_type": "general-purpose",
-  "description": "coderabbit review agent",
-  "prompt": "Use the Skill tool to invoke coderabbit:review on PR #123. Do NOT post comments to PR. Return all findings as markdown.",
+  "description": "pr-review-toolkit agent",
+  "prompt": "Use the Skill tool to invoke pr-review-toolkit:review-pr on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
