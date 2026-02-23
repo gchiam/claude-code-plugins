@@ -13,7 +13,7 @@
         "source": "url",
         "url": "https://github.com/gchiam/claude-code-plugins.git"
       },
-      "description": "Parallel PR review with multi-perspective analysis"
+      "description": "Personal collection of Claude Code plugins"
     }
   ]
 }
