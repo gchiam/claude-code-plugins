@@ -13,28 +13,17 @@ description: >-
 
 **YOU MUST USE THESE EXACT PARAMETERS.** Do NOT use specialized subagent types.
 
-### Phase 1: Launch TWO agents in ONE message
+When launching review agents, each must use `subagent_type: "general-purpose"`:
 
 ```jsonc
-// Agent 1 - MUST use general-purpose, NOT code-reviewer
+// Each review agent - MUST use general-purpose
 {
   "subagent_type": "general-purpose",
-  "description": "Code review command agent",
-  "prompt": "Use the Skill tool to invoke code-review:code-review on PR #[NUMBER]. Do NOT post comments to PR. Return all findings as markdown.",
-  "run_in_background": true
-}
-
-// Agent 2 - MUST use general-purpose, NOT pr-review-toolkit:code-reviewer
-{
-  "subagent_type": "general-purpose",
-  "description": "PR toolkit command agent",
-  "prompt": "Use the Skill tool to invoke pr-review-toolkit:review-pr with 'all' aspects on PR #[NUMBER]. Do NOT post comments to PR. Return all findings as markdown.",
+  "description": "<review-command-name> agent",
+  "prompt": "Use the Skill tool to invoke <command-name> on PR #[NUMBER]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
-
-> **Note:** The `review-pr` command internally orchestrates multiple specialized
-> agents, so two top-level agents provide comprehensive coverage.
 
 ### Synchronization: WAIT for all agents
 
@@ -43,11 +32,10 @@ proceeding to write output files. Use `TaskOutput` tool with `block: true`:
 
 ```jsonc
 // Wait for each agent - call these BEFORE writing any output files
-{"task_id": "[agent-1-id]", "block": true, "timeout": 300000}
-{"task_id": "[agent-2-id]", "block": true, "timeout": 300000}
+{"task_id": "[agent-id]", "block": true, "timeout": 300000}
 ```
 
-**DO NOT proceed to Phase 2 or write output files until BOTH agents complete.**
+**DO NOT proceed to Phase 2 or write output files until ALL agents complete.**
 
 ### WRONG (do not do this):
 - **[X]** `"subagent_type": "code-reviewer"` - Use `general-purpose` + Skill tool instead
@@ -60,57 +48,52 @@ proceeding to write output files. Use `TaskOutput` tool with `block: true`:
 
 ## Overview
 
-This skill orchestrates comprehensive PR reviews by running two independent
-review commands in parallel, validating their findings, and producing an
-aggregated summary. Reviews are saved to markdown files and **never posted
-directly to the PR**.
+This skill orchestrates comprehensive PR reviews by discovering available
+review commands, running them in parallel, validating their findings, and
+producing an aggregated summary. Reviews are saved to markdown files and
+**never posted directly to the PR**.
 
-**Core principle:** Multiple review perspectives catch more issues. The
-`review-pr` command internally orchestrates multiple specialized agents
-(including error handling and security analysis). Validation filters false
-positives. Aggregation provides actionable summary.
+**Core principle:** Multiple review perspectives catch more issues. The skill
+dynamically discovers whatever review commands are available in the user's
+environment, rather than requiring specific plugins. Validation filters false
+positives. Aggregation provides an actionable summary.
 
 ## Workflow
-
-> **Note:** The diagram below uses Mermaid syntax. If it doesn't render
-> in your viewer, see the ASCII version in [README.md](README.md#how-it-works).
 
 ```mermaid
 flowchart TB
     Start([Start])
-    Phase0[Phase 0: Validate Skills]
-    SkillsExist{Skills exist?}
-    ShowInstall[Show /plugin install instructions]:::warning
+    Phase0[Phase 0: Discover Review Commands]
+    CommandsFound{Commands found?}
+    ShowInstall[No review commands available]:::warning
     Stop([STOP]):::error
     Output([Output final report])
 
     Start --> Phase0
-    Phase0 --> SkillsExist
-    SkillsExist -->|no| ShowInstall
+    Phase0 --> CommandsFound
+    CommandsFound -->|none| ShowInstall
     ShowInstall --> Stop
-    SkillsExist -->|yes| Phase1
+    CommandsFound -->|1+| Phase1
 
     subgraph Phase1[Phase 1: Parallel Reviews]
         direction LR
-        R1[code-review:code-review]
-        R2[pr-review-toolkit:review-pr]
+        R1[Review Command 1]
+        R2[Review Command 2]
+        RN[Review Command N...]
     end
 
-    Phase1 --> Save1[review-code-review.md]
-    Phase1 --> Save2[review-pr-toolkit.md]
-    Save1 --> Phase2
-    Save2 --> Phase2
+    Phase1 --> SaveN[review-*.md files]
+    SaveN --> Phase2
 
     subgraph Phase2[Phase 2: Parallel Validation]
         direction LR
-        V1[Validator 1: code-review]
-        V2[Validator 2: pr-toolkit]
+        V1[Validator 1]
+        V2[Validator 2]
+        VN[Validator N...]
     end
 
-    Phase2 --> VSave1[validated-code-review.md]
-    Phase2 --> VSave2[validated-pr-toolkit.md]
-    VSave1 --> Phase3
-    VSave2 --> Phase3
+    Phase2 --> VSaveN[validated-*.md files]
+    VSaveN --> Phase3
 
     Phase3[Phase 3: Aggregate Summary]
     Phase3 --> Summary[pr-review-summary.md]
@@ -149,118 +132,83 @@ Specify what to review using these options:
 | `--output-dir`      | Directory for review files   | `./.reviews/` |
 | `--confidence`      | Min confidence threshold     | `70`          |
 | `--skip-validation` | Skip Phase 2, use raw results| `false`       |
-| `--only <skill>`    | Run subset of reviewers      | all           |
 | `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
-
-> **Naming convention:** `pr-toolkit` = pr-review-toolkit. This shorthand is
-> used in options and output file names.
 
 **Output directory structure:**
 
 ```text
 .reviews/
 └── 2024-01-23-143052/           # Timestamped run
-    ├── review-code-review.md
-    ├── review-pr-toolkit.md
-    ├── validated-code-review.md
-    ├── validated-pr-toolkit.md
+    ├── review-<command-1>.md
+    ├── review-<command-2>.md
+    ├── validated-<command-1>.md
+    ├── validated-<command-2>.md
     └── pr-review-summary.md
 ```
 
-## Model Recommendations
+## Phase 0: Discover Available Review Commands
 
-The following model recommendations optimize for quality per phase. Note
-that actual model selection depends on user configuration and Claude Code
-settings - this skill cannot enforce specific models.
+Instead of requiring specific plugins, discover what review commands are
+available in the current environment. Look at the available skills and
+commands for anything related to code review, PR review, or security review.
 
-| Phase | Task              | Model  | Rationale                     |
-| ----- | ----------------- | ------ | ----------------------------- |
-| 0     | Validate skills   | Haiku  | Simple existence check        |
-| 1     | Run reviews       | Opus   | Deep analysis, high quality   |
-| 2     | Validate findings | Sonnet | Filtering needs good judgment |
-| 3     | Aggregate summary | Opus   | Synthesis needs reasoning     |
+**Discovery rules:**
 
-When spawning subagents with the Task tool, you may specify a `model`
-parameter (e.g., `"model": "haiku"`) but this is a hint, not a guarantee.
+1. Look through available skills/commands for review-related ones. These
+   typically have names or descriptions containing: "review", "code review",
+   "PR review", "security review", "code quality", etc.
+2. **Exclude this skill itself** (`parallel-pr-review`) to avoid recursion.
+3. Select up to 3 review commands to run in parallel. If more than 3 are
+   available, prefer commands that offer different perspectives (e.g., one
+   general code review, one security-focused, one style/quality focused).
+4. If zero review commands are found, **STOP** and inform the user that no
+   review commands are available and suggest installing review plugins.
 
-## Progress Reporting
-
-Display progress during execution:
+**Report what was discovered:**
 
 ```text
 Parallel PR Review - PR #123
 ════════════════════════════════════════
 
-[✓] Phase 0: Validating plugins... (2 found)
-[⋯] Phase 1: Running parallel reviews...
-    ├── [✓] code-review:code-review (12 issues)
-    └── [⋯] pr-review-toolkit:review-pr...
-[ ] Phase 2: Validating findings...
-[ ] Phase 3: Aggregating summary...
-
-Output: .reviews/2024-01-23-143052/
+[✓] Phase 0: Discovered N review commands:
+    ├── /code-review:code-review
+    ├── /pr-review-toolkit:review-pr
+    └── /security-review
 ```
-
-## Phase 0: Validate Required Plugins
-
-Before proceeding, verify required plugins are installed:
-
-1. **code-review:code-review** - Claude Code's built-in PR review command
-2. **pr-review-toolkit:review-pr** - Comprehensive multi-agent PR review command
-
-> **Note:** The `review-pr` command internally orchestrates multiple specialized
-> agents, providing comprehensive coverage with just two top-level agents.
-
-**Validation steps:**
-
-1. Check if both plugins are installed by looking for them in the
-   available skills/commands
-2. If any plugin is missing, **STOP** and display the following message:
-
-```text
-Missing required plugin(s). Install using /plugin command:
-
-/plugin install code-review@claude-plugins-official
-/plugin install pr-review-toolkit@claude-plugins-official
-
-After installation, run this skill again.
-```
-
-3. Only proceed to Phase 1 if both plugins are confirmed available
 
 ## Phase 1: Parallel Review Execution
 
 > **STOP! Before proceeding, review the "CRITICAL: Task Tool Configuration"
-> section at the top of this document.** Both agents use `general-purpose`.
+> section at the top of this document.** All agents use `general-purpose`.
 
-Launch **two general-purpose agents in parallel** using the Task tool in a
-single message. Each agent must use `subagent_type: "general-purpose"` so it
-can invoke commands via the Skill tool.
+Launch **one general-purpose agent per discovered review command** using the
+Task tool in a single message. Each agent must use
+`subagent_type: "general-purpose"` so it can invoke commands via the Skill tool.
 
-**CRITICAL:** Do NOT use specialized subagent types like `code-reviewer` or
-`pr-review-toolkit:code-reviewer`. You must use `general-purpose` agents that
-invoke the commands via the Skill tool.
+**CRITICAL:** Do NOT use specialized subagent types. You must use
+`general-purpose` agents that invoke the commands via the Skill tool.
 
 **Verification checkpoint:** Before calling the Task tool, confirm:
-- [ ] Both agents use `"subagent_type": "general-purpose"`
-- [ ] Both agent prompts start with "Use the Skill tool to invoke..."
-- [ ] No agent uses `code-reviewer` or `pr-review-toolkit:code-reviewer`
+- [ ] All agents use `"subagent_type": "general-purpose"`
+- [ ] All agent prompts start with "Use the Skill tool to invoke..."
+- [ ] No agent uses specialized subagent types like `code-reviewer`
 
-### Agent 1: code-review:code-review
+### Agent prompt template
+
+For each discovered review command, launch an agent with this prompt structure:
 
 ```markdown
-**Task prompt for Agent 1 (subagent_type: "general-purpose"):**
+**Task prompt for agent (subagent_type: "general-purpose"):**
 
-Use the Skill tool to invoke the code-review:code-review skill on [TARGET].
+Use the Skill tool to invoke <COMMAND_NAME> on [TARGET].
 
 CRITICAL INSTRUCTIONS:
 1. Do NOT post any comments to the PR
 2. Do NOT use `gh pr comment` or any GitHub posting commands
 3. Capture ALL review output including:
    - Issues found with severity levels
-   - CLAUDE.md compliance checks
    - Bug detection results
-   - Historical context findings
+   - Security concerns (if applicable)
 4. Format output as structured markdown
 5. Return the complete review findings
 
@@ -271,48 +219,26 @@ Configuration:
 Save all findings - they will be written to a markdown file.
 ```
 
-### Agent 2: pr-review-toolkit:review-pr
-
-```markdown
-**Task prompt for Agent 2 (subagent_type: "general-purpose"):**
-
-Use the Skill tool to invoke the pr-review-toolkit:review-pr skill with "all" aspects on [TARGET].
-
-CRITICAL INSTRUCTIONS:
-1. Do NOT post any comments to the PR
-2. Do NOT use `gh pr comment` or any GitHub posting commands
-3. Run all review aspects: comments, tests, errors, types, code, simplify
-4. Capture ALL review output including:
-   - Critical issues
-   - Important issues
-   - Suggestions
-   - Positive observations
-5. Format output as structured markdown
-6. Return the complete review findings
-
-Configuration:
-- Review scope: [diff-only | full-context]
-- Files: [file list if specified]
-
-Save all findings - they will be written to a markdown file.
-```
-
 ### Phase 1 Output Files
 
-**IMPORTANT:** Use `TaskOutput` with `block: true` on BOTH agent IDs
-before proceeding. Do NOT write output files until both agents have returned.
+**IMPORTANT:** Use `TaskOutput` with `block: true` on ALL agent IDs
+before proceeding. Do NOT write output files until all agents have returned.
 
-After both agents complete, write results to output directory:
+After all agents complete, write results to output directory. Name each file
+based on the command that produced it:
 
-- `review-code-review.md` - Output from code-review:code-review
-- `review-pr-toolkit.md` - Output from pr-review-toolkit:review-pr
+- `review-<command-short-name>.md` - Output from each review command
+
+Use a short name derived from the command (e.g., `code-review` from
+`code-review:code-review`, `pr-toolkit` from `pr-review-toolkit:review-pr`,
+`security` from `security-review`).
 
 Include header in each file:
 
 ```markdown
 # Code Review Results
 
-**Source:** code-review:code-review
+**Source:** <command-name>
 **Target:** PR #123 / branch-name
 **Date:** 2024-01-23 14:30:52
 **Scope:** diff-only
@@ -323,37 +249,15 @@ Include header in each file:
 
 ## Phase 2: Parallel Validation
 
-Launch **two validation agents in parallel** (using `subagent_type: "general-purpose"`) to evaluate findings:
+Launch **one validation agent per review output** (using
+`subagent_type: "general-purpose"`) to evaluate findings:
 
-### Validator 1: Evaluate code-review findings
-
-```markdown
-**Task prompt for Validator 1 (Sonnet recommended):**
-
-Read and evaluate the findings in review-code-review.md.
-
-For each issue found:
-1. Verify the issue is real (not a false positive)
-2. Check if it's a pre-existing issue vs new in this PR
-3. Assess severity: Critical / Important / Minor / Nitpick
-4. Evaluate confidence level (0-100)
-5. Check if issue is actionable
-
-Filter criteria:
-- Remove false positives
-- Remove pre-existing issues not introduced by this PR
-- Remove issues that linters/type checkers would catch
-- Keep issues with confidence >= [CONFIDENCE_THRESHOLD]
-
-Output: Validated findings with confidence scores and reasoning.
-```
-
-### Validator 2: Evaluate pr-review-toolkit findings
+### Validator prompt template
 
 ```markdown
-**Task prompt for Validator 2 (Sonnet recommended):**
+**Task prompt for Validator (Sonnet recommended):**
 
-Read and evaluate the findings in review-pr-toolkit.md.
+Read and evaluate the findings in review-<name>.md.
 
 For each issue found:
 1. Verify the issue is real (not a false positive)
@@ -373,12 +277,11 @@ Output: Validated findings with confidence scores and reasoning.
 
 ### Validation Output Files
 
-- `validated-code-review.md` - Validated findings from code-review
-- `validated-pr-toolkit.md` - Validated findings from pr-review-toolkit
+- `validated-<command-short-name>.md` - Validated findings from each review
 
 ## Phase 3: Aggregate Summary
 
-After validation completes, generate a comprehensive summary:
+After validation completes, generate a comprehensive summary.
 
 ### Deduplication Rules
 
@@ -393,7 +296,7 @@ Issues are considered duplicates if ANY of these match:
 **When duplicates found:**
 
 - Keep the instance with highest confidence score
-- Mark source as "both" in Source column
+- Mark source as "multiple" in Source column
 - Combine unique details from all descriptions
 
 ### Aggregation Steps
@@ -411,7 +314,7 @@ Issues are considered duplicates if ANY of these match:
 
 **PR:** [PR number/branch]
 **Date:** [timestamp]
-**Reviews Run:** code-review, pr-review-toolkit
+**Reviews Run:** [list of commands used]
 **Confidence Threshold:** [threshold]%
 **Output Directory:** [path]
 
@@ -429,7 +332,7 @@ Issues are considered duplicates if ANY of these match:
 
 | # | Issue | Source | Confidence | File:Line |
 |---|-------|--------|------------|-----------|
-| 1 | [description] | [both/single] | [score]% | [location] |
+| 1 | [description] | [sources] | [score]% | [location] |
 
 ## Important Issues (Should Fix)
 
@@ -447,9 +350,8 @@ Issues are considered duplicates if ANY of these match:
 
 ## Review Agreement Analysis
 
-- **Issues found by both reviews:** [count] (highest confidence)
-- **Issues unique to code-review:** [count]
-- **Issues unique to pr-review-toolkit:** [count]
+- **Issues found by multiple reviews:** [count] (highest confidence)
+- **Issues unique to each review:** [counts per source]
 - **Agreement rate:** [percentage]%
 - **Overall confidence:** [high/medium/low]
 
@@ -462,7 +364,8 @@ Issues are considered duplicates if ANY of these match:
 ---
 
 *Generated by parallel-pr-review skill*
-*Review files: review-code-review.md, review-pr-toolkit.md*
+*Review commands used: [list]*
+*Review files: review-*.md*
 *Validation files: validated-*.md*
 ```
 
@@ -475,7 +378,7 @@ Issues are considered duplicates if ANY of these match:
 After summary is generated, offer an action menu:
 
 ```text
-Review complete! Found 2 security, 3 critical, 5 important issues.
+Review complete! Found N security, N critical, N important issues.
 
 What would you like to do?
 
@@ -520,13 +423,6 @@ Run parallel-pr-review --pr 123
 Run parallel-pr-review --pr 123 --confidence 80 --output-dir ./my-reviews
 ```
 
-### Review with specific reviewer only
-
-```bash
-Run parallel-pr-review --only code-review
-Run parallel-pr-review --only pr-toolkit
-```
-
 ### Skip validation phase
 
 ```bash
@@ -553,14 +449,12 @@ Run parallel-pr-review --pr 123 --full-context
 
 ## Output Files Summary
 
-| File                       | Phase | Contents                       |
-| -------------------------- | ----- | ------------------------------ |
-| `review-code-review.md`    | 1     | Raw output from code-review    |
-| `review-pr-toolkit.md`     | 1     | Raw output from pr-toolkit     |
-| `validated-code-review.md` | 2     | Validated code-review findings |
-| `validated-pr-toolkit.md`  | 2     | Validated pr-toolkit findings  |
-| `pr-review-summary.md`     | 3     | Final aggregated summary       |
-| `fix-suggestions.md`       | Post  | Fix suggestions (optional)     |
+| File                           | Phase | Contents                         |
+| ------------------------------ | ----- | -------------------------------- |
+| `review-<command>.md`          | 1     | Raw output from each reviewer    |
+| `validated-<command>.md`       | 2     | Validated findings per reviewer  |
+| `pr-review-summary.md`        | 3     | Final aggregated summary         |
+| `fix-suggestions.md`          | Post  | Fix suggestions (optional)       |
 
 ## Important Constraints
 
@@ -574,16 +468,16 @@ Run parallel-pr-review --pr 123 --full-context
 
 **Parallel execution:**
 
-- Phase 1: Both reviews run simultaneously
-- Phase 2: Both validators run simultaneously
+- Phase 1: All reviews run simultaneously
+- Phase 2: All validators run simultaneously
 - Use single Task tool message with multiple invocations for parallelism
 
 ## Error Handling
 
 | Scenario                      | Behavior                             |
 | ----------------------------- | ------------------------------------ |
-| One skill fails in Phase 1    | Continue with available, warn user   |
-| All skills fail in Phase 1    | Abort with error details             |
+| One command fails in Phase 1  | Continue with available, warn user   |
+| All commands fail in Phase 1  | Abort with error details             |
 | Validation fails              | Use unvalidated results with warning |
 | Output directory not writable | Fallback to current directory        |
 | PR not found                  | Prompt for correct PR number         |
@@ -592,11 +486,14 @@ Run parallel-pr-review --pr 123 --full-context
 **Always produce summary even with partial results** - indicate which
 phases succeeded/failed.
 
-## Selective Execution
+## Model Recommendations
 
-| Flag                 | Skips       | Use Case                    |
-| -------------------- | ----------- | --------------------------- |
-| `--only code-review` | pr-toolkit  | Quick CLAUDE.md compliance  |
-| `--only pr-toolkit`  | code-review | Multi-aspect review         |
-| `--skip-validation`  | Phase 2     | Trust raw results, faster   |
-| `--revalidate`       | Phase 1     | Re-filter with new threshold|
+| Phase | Task              | Model  | Rationale                     |
+| ----- | ----------------- | ------ | ----------------------------- |
+| 0     | Discover commands | Haiku  | Simple discovery task         |
+| 1     | Run reviews       | Opus   | Deep analysis, high quality   |
+| 2     | Validate findings | Sonnet | Filtering needs good judgment |
+| 3     | Aggregate summary | Opus   | Synthesis needs reasoning     |
+
+When spawning subagents with the Task tool, you may specify a `model`
+parameter (e.g., `"model": "haiku"`) but this is a hint, not a guarantee.

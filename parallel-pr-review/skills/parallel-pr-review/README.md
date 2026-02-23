@@ -1,12 +1,12 @@
 # Parallel PR Review
 
-A Claude Code skill that runs two independent code review commands in parallel,
-validates the findings, and produces an aggregated summary.
+A Claude Code skill that discovers available review commands and runs them in
+parallel, validates the findings, and produces an aggregated summary.
 
 ## Why Use This?
 
 - **Multiple perspectives** catch more issues than a single review
-- **Comprehensive coverage** - `review-pr` internally uses multiple specialized agents
+- **Auto-discovery** - works with whatever review plugins you have installed
 - **Validation phase** filters out false positives
 - **Aggregated summary** shows agreement between reviewers
 - **No auto-posting** - you control what gets posted to the PR
@@ -24,39 +24,30 @@ claude "Run parallel-pr-review --pr 123"
 claude "Run parallel-pr-review --pr 123 --confidence 80"
 ```
 
-## Prerequisites
-
-Install the required plugins:
-
-```bash
-/plugin install code-review@claude-plugins-official
-/plugin install pr-review-toolkit@claude-plugins-official
-```
-
-> **Note:** The `review-pr` command internally orchestrates multiple specialized
-> agents (including error handling analysis), providing comprehensive coverage.
-
 ## How It Works
+
+The skill automatically discovers review-related commands available in your
+environment (e.g., `/code-review`, `/pr-review-toolkit:review-pr`,
+`/security-review`, `/coderabbit:code-review`) and runs up to 3 of them in
+parallel.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 0: Validate required plugins exist                           │
+│  Phase 0: Discover available review commands                        │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 1: Run reviews in PARALLEL                                   │
-│  ┌───────────────────────┐ ┌───────────────────────┐                │
-│  │ code-review:code-     │ │ pr-review-toolkit:    │                │
-│  │ review                │ │ review-pr             │                │
-│  └───────────────────────┘ └───────────────────────┘                │
+│  Phase 1: Run discovered reviews in PARALLEL                        │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐                │
+│  │ Review Cmd 1 │ │ Review Cmd 2 │ │ Review Cmd 3 │                │
+│  └──────────────┘ └──────────────┘ └──────────────┘                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │  Phase 2: Validate findings in PARALLEL                             │
-│  ┌───────────────────────┐ ┌───────────────────────┐                │
-│  │ Validator 1           │ │ Validator 2           │                │
-│  │ (code-review)         │ │ (pr-toolkit)          │                │
-│  └───────────────────────┘ └───────────────────────┘                │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐                │
+│  │ Validator 1  │ │ Validator 2  │ │ Validator 3  │                │
+│  └──────────────┘ └──────────────┘ └──────────────┘                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -72,13 +63,11 @@ Install the required plugins:
 
 All results are saved to `.reviews/<timestamp>/`:
 
-| File                        | Description                               |
-| --------------------------- | ----------------------------------------- |
-| `review-code-review.md`     | Raw findings from code-review command     |
-| `review-pr-toolkit.md`      | Raw findings from review-pr command       |
-| `validated-code-review.md`  | Filtered code-review findings             |
-| `validated-pr-toolkit.md`   | Filtered pr-toolkit findings              |
-| `pr-review-summary.md`      | **Final aggregated report**               |
+| File                          | Description                             |
+| ----------------------------- | --------------------------------------- |
+| `review-<command>.md`         | Raw findings from each review command   |
+| `validated-<command>.md`      | Filtered findings per command           |
+| `pr-review-summary.md`       | **Final aggregated report**             |
 
 ## Options
 
@@ -98,10 +87,6 @@ All results are saved to `.reviews/<timestamp>/`:
 | `--output-dir`      | `./.reviews/` | Where to save results            |
 | `--confidence`      | `70`          | Min confidence to include (0-100)|
 | `--skip-validation` | `false`       | Skip Phase 2 for faster results  |
-| `--only <skill>`    | all           | Run subset of reviewers          |
-
-> **Shorthand names:** `pr-toolkit` = pr-review-toolkit. Used in options and
-> file names.
 
 ## Examples
 
@@ -117,10 +102,6 @@ claude "Run parallel-pr-review --confidence 85"
 
 # Quick review - skip validation phase
 claude "Run parallel-pr-review --skip-validation"
-
-# Only run specific reviewer
-claude "Run parallel-pr-review --only code-review"
-claude "Run parallel-pr-review --only pr-toolkit"
 
 # Review specific files
 claude "Run parallel-pr-review --files src/auth.ts src/login.ts"
@@ -138,18 +119,15 @@ The final `pr-review-summary.md` includes:
 
 ### Source Column
 
-| Value         | Meaning                               |
-| ------------- | ------------------------------------- |
-| `both`        | Found by both reviewers               |
-| `code-review` | Only found by code-review command     |
-| `pr-toolkit`  | Only found by review-pr command       |
+Shows which reviewer(s) found each issue. Issues found by multiple reviewers
+have higher confidence.
 
 ### Agreement Analysis
 
-Shows how much the two reviewers agreed:
+Shows how much the reviewers agreed:
 
 - High agreement = high confidence in findings
-- Issues found by both reviewers are more likely real
+- Issues found by multiple reviewers are more likely real
 
 ## Post-Review Actions
 
@@ -167,12 +145,9 @@ After the review completes, you'll see an action menu:
 **Q: Will this post comments to my PR automatically?**
 A: No. All output goes to markdown files. You decide what to post.
 
-**Q: How long does it take?**
-A: Depends on PR size. Both reviews and validations run in parallel,
-so it's much faster than running sequentially.
-
-**Q: Can I run just one reviewer?**
-A: Yes, use `--only code-review` or `--only pr-toolkit`.
+**Q: What review commands does it use?**
+A: It auto-discovers available review commands in your environment. Install
+any review plugins you like and this skill will use them.
 
 **Q: What if one reviewer fails?**
 A: The skill continues with available results and warns you.

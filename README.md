@@ -39,8 +39,8 @@ git clone https://github.com/gchiam/claude-code-plugins.git
 
 ### parallel-pr-review
 
-Runs two independent code review methodologies in parallel, validates findings,
-and produces an aggregated summary.
+Discovers available review commands in your environment, runs them in parallel,
+validates findings, and produces an aggregated summary.
 
 **Usage:**
 
@@ -56,7 +56,8 @@ Or use the command:
 
 **Features:**
 
-- Parallel execution of code-review and pr-review-toolkit skills
+- Auto-discovers available review commands (code-review, pr-review-toolkit, security-review, etc.)
+- Parallel execution of up to 3 review commands
 - Validation phase to filter false positives
 - Deduplication of findings across reviewers
 - Configurable confidence threshold
@@ -64,13 +65,6 @@ Or use the command:
 
 See [parallel-pr-review/skills/parallel-pr-review/README.md](parallel-pr-review/skills/parallel-pr-review/README.md)
 for full documentation.
-
-**Prerequisites:**
-
-```bash
-/plugin install code-review@claude-plugins-official
-/plugin install pr-review-toolkit@claude-plugins-official
-```
 
 ### jira-cli
 
