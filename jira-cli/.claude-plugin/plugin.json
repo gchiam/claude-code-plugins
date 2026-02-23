@@ -1,0 +1,8 @@
+{
+  "name": "jira-cli",
+  "version": "1.0.0",
+  "description": "Interact with Jira from the command line using jira-cli",
+  "author": {
+    "name": "gchiam"
+  }
+}

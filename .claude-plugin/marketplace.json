@@ -8,12 +8,14 @@
   },
   "plugins": [
     {
-      "name": "gchiam-claude-code-plugins",
-      "source": {
-        "source": "url",
-        "url": "https://github.com/gchiam/claude-code-plugins.git"
-      },
-      "description": "Personal collection of Claude Code plugins"
+      "name": "parallel-pr-review",
+      "source": "./parallel-pr-review",
+      "description": "Parallel PR review with multi-perspective analysis"
+    },
+    {
+      "name": "jira-cli",
+      "source": "./jira-cli",
+      "description": "Interact with Jira from the command line using jira-cli"
     }
   ]
 }
