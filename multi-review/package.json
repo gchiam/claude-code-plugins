@@ -1,0 +1,6 @@
+{
+  "name": "multi-review",
+  "version": "3.2.0",
+  "private": true,
+  "description": "Multi-perspective code review with validation and aggregation"
+}
