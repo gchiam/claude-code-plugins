@@ -362,54 +362,6 @@ dynamically discovers whatever review commands are available in the user's
 environment, rather than requiring specific plugins. Validation filters false
 positives. Aggregation provides an actionable summary.
 
-### Workflow
-
-```mermaid
-flowchart TB
-    Start([Start])
-    Phase0[Phase 0: Discover Review Commands]
-    CommandsFound{Commands found?}
-    ShowInstall[No review commands available]:::warning
-    Stop([STOP]):::error
-    Output([Output final report])
-
-    Start --> Phase0
-    Phase0 --> CommandsFound
-    CommandsFound -->|none| ShowInstall
-    ShowInstall --> Stop
-    CommandsFound -->|1+| Phase1
-
-    subgraph Phase1[Phase 1: Parallel Reviews]
-        direction LR
-        R1[Review Command 1]
-        R2[Review Command 2]
-        RN[Review Command N...]
-    end
-
-    Phase1 --> SaveN[review-*.md files]
-    SaveN --> Phase2
-
-    subgraph Phase2[Phase 2: Parallel Validation]
-        direction LR
-        V1[Validator 1]
-        V2[Validator 2]
-        VN[Validator N...]
-    end
-
-    Phase2 --> VSaveN[validated-*.md files]
-    VSaveN --> Phase3
-
-    Phase3[Phase 3: Aggregate Summary]
-    Phase3 --> Summary[pr-review-summary.md]
-    Summary --> PostActions{Post-review actions?}
-    PostActions -->|yes| Actions[Offer action menu]
-    PostActions -->|no| Output
-    Actions --> Output
-
-    classDef warning fill:#fff3cd,stroke:#856404
-    classDef error fill:#f8d7da,stroke:#721c24
-```
-
 ### Input Options
 
 Specify what to review using these options:
