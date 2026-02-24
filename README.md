@@ -11,7 +11,7 @@ Personal collection of Claude Code plugins.
 /plugin marketplace add gchiam/claude-code-plugins
 
 # Step 2: Install individual plugins
-/plugin install parallel-pr-review@gchiam-plugins
+/plugin install multi-review@gchiam-plugins
 /plugin install jira-cli@gchiam-plugins
 ```
 
@@ -28,7 +28,7 @@ git clone https://github.com/gchiam/claude-code-plugins.git
 
 ```bash
 # Remove individual plugins
-/plugin uninstall parallel-pr-review
+/plugin uninstall multi-review
 /plugin uninstall jira-cli
 
 # Optionally remove the marketplace
@@ -37,7 +37,7 @@ git clone https://github.com/gchiam/claude-code-plugins.git
 
 ## Available Plugins
 
-### parallel-pr-review
+### multi-review
 
 Discovers available review commands in your environment, runs them in parallel,
 validates findings, and produces an aggregated summary.
@@ -45,13 +45,13 @@ validates findings, and produces an aggregated summary.
 **Usage:**
 
 ```bash
-claude "Run parallel-pr-review --pr 123"
+claude "Run multi-review --pr 123"
 ```
 
 Or use the command:
 
 ```text
-/parallel-pr-review --pr 123
+/multi-review --pr 123
 ```
 
 **Features:**
@@ -63,7 +63,7 @@ Or use the command:
 - Configurable confidence threshold
 - No auto-posting to PR
 
-See [parallel-pr-review/skills/parallel-pr-review/README.md](parallel-pr-review/skills/parallel-pr-review/README.md)
+See [multi-review/skills/multi-review/README.md](multi-review/skills/multi-review/README.md)
 for full documentation.
 
 ### jira-cli
@@ -99,10 +99,10 @@ sprints, epics, boards, and common workflows.
 claude-code-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json                  # Marketplace catalog
-├── parallel-pr-review/                   # PR review plugin
+├── multi-review/                    # Multi-perspective code review plugin
 │   ├── .claude-plugin/plugin.json
-│   ├── commands/parallel-pr-review.md
-│   └── skills/parallel-pr-review/
+│   ├── commands/multi-review.md
+│   └── skills/multi-review/
 │       ├── SKILL.md
 │       └── README.md
 ├── jira-cli/                             # Jira CLI plugin
@@ -119,7 +119,7 @@ To test changes locally:
 
 ```bash
 # Run Claude with a specific plugin directory
-claude --plugin-dir ./parallel-pr-review
+claude --plugin-dir ./multi-review
 claude --plugin-dir ./jira-cli
 ```
 

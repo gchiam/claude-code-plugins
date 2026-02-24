@@ -1,8 +1,0 @@
-{
-  "name": "parallel-pr-review",
-  "version": "2.1.1",
-  "description": "Parallel PR review with multi-perspective analysis",
-  "author": {
-    "name": "gchiam"
-  }
-}

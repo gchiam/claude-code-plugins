@@ -8,9 +8,9 @@
   },
   "plugins": [
     {
-      "name": "parallel-pr-review",
-      "source": "./parallel-pr-review",
-      "description": "Parallel PR review with multi-perspective analysis"
+      "name": "multi-review",
+      "source": "./multi-review",
+      "description": "Multi-perspective code review with validation and aggregation"
     },
     {
       "name": "jira-cli",

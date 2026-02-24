@@ -1,4 +1,4 @@
-# Parallel PR Review
+# Multi Review
 
 A Claude Code skill that discovers available review commands and runs them in
 parallel, validates the findings, and produces an aggregated summary.
@@ -15,13 +15,13 @@ parallel, validates the findings, and produces an aggregated summary.
 
 ```bash
 # Review current PR
-claude "Run parallel-pr-review"
+claude "Run multi-review"
 
 # Review specific PR
-claude "Run parallel-pr-review --pr 123"
+claude "Run multi-review --pr 123"
 
 # Review with higher confidence threshold
-claude "Run parallel-pr-review --pr 123 --confidence 80"
+claude "Run multi-review --pr 123 --confidence 80"
 ```
 
 ## Suggested Review Plugins
@@ -116,22 +116,22 @@ All results are saved to `.reviews/<timestamp>/`:
 
 ```bash
 # Basic - auto-detects PR from current branch
-claude "Run parallel-pr-review"
+claude "Run multi-review"
 
 # Specific PR with custom output location
-claude "Run parallel-pr-review --pr 456 --output-dir ./reviews"
+claude "Run multi-review --pr 456 --output-dir ./reviews"
 
 # Higher confidence threshold (fewer but more certain issues)
-claude "Run parallel-pr-review --confidence 85"
+claude "Run multi-review --confidence 85"
 
 # Quick review - skip validation phase
-claude "Run parallel-pr-review --skip-validation"
+claude "Run multi-review --skip-validation"
 
 # Run all discovered reviewers (no practical cap)
-claude "Run parallel-pr-review --max-reviewers 10"
+claude "Run multi-review --max-reviewers 10"
 
 # Review specific files
-claude "Run parallel-pr-review --files src/auth.ts src/login.ts"
+claude "Run multi-review --files src/auth.ts src/login.ts"
 ```
 
 ## Understanding the Summary
@@ -188,9 +188,9 @@ issues. Lower values (50-60) = more issues but more false positives.
 When installed as a plugin, files are located within the plugin directory:
 
 ```text
-<plugin-dir>/skills/parallel-pr-review/
+<plugin-dir>/skills/multi-review/
 ├── SKILL.md   # Instructions for Claude (technical)
 └── README.md  # This file (human documentation)
 ```
 
-The command definition is at `<plugin-dir>/commands/parallel-pr-review.md`.
+The command definition is at `<plugin-dir>/commands/multi-review.md`.
