@@ -9,38 +9,58 @@ description: >-
 
 # Parallel PR Review
 
-## CRITICAL: How to Launch Review Agents
+> **STOP. Read these rules before doing ANYTHING. Violations will produce
+> wrong results.**
 
-You MUST use `"subagent_type": "general-purpose"` for every review agent.
-The reason this matters is that specialized subagent types like
-`coderabbit:code-reviewer` or `superpowers:code-reviewer` bypass the Skill
-tool and miss standalone commands like `security-review`. Using
-`general-purpose` agents that invoke commands via the Skill tool is the only
-way to get consistent behavior across all review command types.
+## MANDATORY RULES — DO NOT SKIP
 
-**DO NOT use these subagent types** (they exist in the Task tool list but
-are the wrong approach here):
-- `code-reviewer`
-- `coderabbit:code-reviewer`
-- `superpowers:code-reviewer`
-- `pr-review-toolkit:code-reviewer`
-- `feature-dev:code-reviewer`
+### Rule 1: You MUST run Phase 0 (Discovery) FIRST
 
-**USE THIS for every review agent:**
+Do NOT jump straight to launching agents. You MUST first scan the available
+skills list (see Phase 0 below), extract review-related commands, and print
+the discovery report. If you skip this step, you will launch the wrong
+agents.
+
+### Rule 2: ONLY use `"subagent_type": "general-purpose"`
+
+Every review agent you launch MUST use `"subagent_type": "general-purpose"`.
+
+**FORBIDDEN subagent types — NEVER use any of these:**
+
+| Forbidden value | Why it's wrong |
+|---|---|
+| `code-reviewer` | Not a real agent type for skill invocation |
+| `coderabbit:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
+| `superpowers:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
+| `pr-review-toolkit:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
+| `feature-dev:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
+| `pr-review-toolkit:silent-failure-hunter` | Bypasses Skill tool, runs built-in failure analysis |
+
+These subagent types exist in the Task tool description but they run
+**built-in agent behaviors**, NOT the review skills/commands. They will
+NOT invoke the Skill tool and will NOT run the review plugins the user
+has installed.
+
+### Rule 3: Each agent MUST use the Skill tool
+
+Each agent's prompt must instruct it to call `Skill` with the discovered
+command name. This is what actually runs the user's installed review plugins.
+
+**Correct agent template:**
 
 ```jsonc
 {
   "subagent_type": "general-purpose",
-  "description": "<short description>",
+  "description": "<review-command-name> review",
   "prompt": "Use the Skill tool to invoke <SKILL_NAME> on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
 
-### Synchronization: WAIT for all agents
+### Rule 4: WAIT for all agents before proceeding
 
-After launching background agents, you MUST wait for ALL to complete before
-proceeding to write output files. Use `TaskOutput` tool with `block: true`:
+Use `TaskOutput` with `block: true` on every agent ID before writing output
+files or proceeding to Phase 2.
 
 ```jsonc
 {"task_id": "[agent-id]", "block": true, "timeout": 300000}
@@ -207,9 +227,14 @@ review plugins.
 
 ## Phase 1: Parallel Review Execution
 
-Launch **one agent per discovered review command** in a single Task tool
-message. Every agent MUST use `subagent_type: "general-purpose"` — see the
-"CRITICAL: How to Launch Review Agents" section at the top of this document.
+**REMINDER:** Re-read the MANDATORY RULES at the top of this document.
+- Every agent MUST use `"subagent_type": "general-purpose"`
+- Every agent prompt MUST instruct the agent to use the Skill tool
+- NEVER use `code-reviewer`, `coderabbit:code-reviewer`, or any other
+  specialized subagent type
+
+Launch **one agent per selected review command** from Phase 0 in a single
+Task tool message.
 
 **Concrete example** — if Phase 0 discovered `code-review:code-review`,
 `coderabbit:review`, and `pr-review-toolkit:review-pr`, launch exactly
@@ -219,21 +244,21 @@ these three Task tool calls in one message:
 // Agent 1
 {
   "subagent_type": "general-purpose",
-  "description": "code-review agent",
+  "description": "code-review:code-review review",
   "prompt": "Use the Skill tool to invoke code-review:code-review on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 // Agent 2
 {
   "subagent_type": "general-purpose",
-  "description": "coderabbit review agent",
+  "description": "coderabbit:review review",
   "prompt": "Use the Skill tool to invoke coderabbit:review on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 // Agent 3
 {
   "subagent_type": "general-purpose",
-  "description": "pr-review-toolkit agent",
+  "description": "pr-review-toolkit:review-pr review",
   "prompt": "Use the Skill tool to invoke pr-review-toolkit:review-pr on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
