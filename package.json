@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "prepare": "husky",
+    "dev": "bash scripts/dev.sh",
     "validate": "bash scripts/validate.sh"
   },
   "description": "Personal collection of Claude Code plugins",
