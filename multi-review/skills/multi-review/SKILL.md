@@ -9,169 +9,26 @@ description: >-
 
 # Multi Review
 
-> **STOP. Read these rules before doing ANYTHING. Violations will produce
-> wrong results.**
+> **STOP. Your first action is Phase 0 below. Do NOT launch any agents
+> until you have printed the Phase 0 discovery report.**
 
-## MANDATORY RULES — DO NOT SKIP
+## Rules
 
-### Rule 1: You MUST run Phase 0 (Discovery) FIRST
-
-Do NOT jump straight to launching agents. You MUST first scan the available
-skills list (see [Phase 0](#phase-0-discover-available-review-commands)
-below), extract review-related commands, and print the discovery report. If
-you skip this step, you will launch the wrong agents.
-
-### Rule 2: ONLY use `"subagent_type": "general-purpose"`
-
-Every review agent you launch MUST use `"subagent_type": "general-purpose"`.
-
-**FORBIDDEN subagent types — NEVER use any of these:**
-
-| Forbidden value | Why it's wrong |
-|---|---|
-| `code-reviewer` | Not a valid subagent type; does not exist for skill invocation |
-| `coderabbit:code-reviewer` | Bypasses Skill tool; runs CodeRabbit's built-in agent directly |
-| `superpowers:code-reviewer` | Bypasses Skill tool; runs superpowers built-in code review agent |
-| `pr-review-toolkit:code-reviewer` | Bypasses Skill tool; runs pr-review-toolkit built-in review agent |
-| `feature-dev:code-reviewer` | Bypasses Skill tool; runs feature-dev built-in review agent |
-| `pr-review-toolkit:silent-failure-hunter` | Bypasses Skill tool; runs failure analysis agent, not a code reviewer |
-
-These subagent types exist in the Task tool description but they run
-**built-in agent behaviors**, NOT the review skills/commands. They will
-NOT invoke the Skill tool and will NOT run the review plugins the user
-has installed.
-
-### Rule 3: Each agent MUST use the Skill tool
-
-Each agent's prompt must instruct it to call `Skill` with the discovered
-command name. This is what actually runs the user's installed review plugins.
-
-**Correct agent template** (all `[BRACKETED]` values are placeholders to
-substitute — `[SKILL_NAME]` is the discovered command name, `[TARGET]` is
-the PR number, branch name, or file list being reviewed):
-
-```jsonc
-{
-  "subagent_type": "general-purpose",
-  "description": "[SKILL_NAME] review",
-  "prompt": "Use the Skill tool to invoke [SKILL_NAME] on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
-  "run_in_background": true
-}
-```
-
-### Rule 4: WAIT for all agents before proceeding
-
-**DO NOT proceed to Phase 2 or write output files until ALL agents complete.**
-
-Use `TaskOutput` with `block: true` on every agent ID before writing output
-files or proceeding to Phase 2.
-
-```jsonc
-{"task_id": "[agent-id]", "block": true, "timeout": 300000}
-```
+1. **Phase 0 first.** Complete Phase 0 and print the discovery report
+   before doing anything else. If you skip this, you will launch the
+   wrong agents.
+2. **`"subagent_type": "general-purpose"` only.** Every Task tool call
+   that launches a review agent must set `"subagent_type"` to exactly
+   `"general-purpose"`. No other value is permitted — any other subagent
+   type bypasses the Skill tool and runs a built-in agent behavior
+   instead of the user's installed review plugins.
+3. **Each agent must invoke the Skill tool.** The agent's prompt must
+   instruct it to call the Skill tool with the discovered command name.
+   This is what actually runs the review plugin.
+4. **Wait for all agents.** Use `TaskOutput` with `block: true` on
+   every agent ID before writing output files or starting the next phase.
 
 ---
-
-## Overview
-
-This skill orchestrates comprehensive PR reviews by discovering available
-review commands, running them in parallel, validating their findings, and
-producing an aggregated summary. Reviews are saved to markdown files and
-**never posted directly to the PR**.
-
-**Core principle:** Multiple review perspectives catch more issues. The skill
-dynamically discovers whatever review commands are available in the user's
-environment, rather than requiring specific plugins. Validation filters false
-positives. Aggregation provides an actionable summary.
-
-## Workflow
-
-```mermaid
-flowchart TB
-    Start([Start])
-    Phase0[Phase 0: Discover Review Commands]
-    CommandsFound{Commands found?}
-    ShowInstall[No review commands available]:::warning
-    Stop([STOP]):::error
-    Output([Output final report])
-
-    Start --> Phase0
-    Phase0 --> CommandsFound
-    CommandsFound -->|none| ShowInstall
-    ShowInstall --> Stop
-    CommandsFound -->|1+| Phase1
-
-    subgraph Phase1[Phase 1: Parallel Reviews]
-        direction LR
-        R1[Review Command 1]
-        R2[Review Command 2]
-        RN[Review Command N...]
-    end
-
-    Phase1 --> SaveN[review-*.md files]
-    SaveN --> Phase2
-
-    subgraph Phase2[Phase 2: Parallel Validation]
-        direction LR
-        V1[Validator 1]
-        V2[Validator 2]
-        VN[Validator N...]
-    end
-
-    Phase2 --> VSaveN[validated-*.md files]
-    VSaveN --> Phase3
-
-    Phase3[Phase 3: Aggregate Summary]
-    Phase3 --> Summary[pr-review-summary.md]
-    Summary --> PostActions{Post-review actions?}
-    PostActions -->|yes| Actions[Offer action menu]
-    PostActions -->|no| Output
-    Actions --> Output
-
-    classDef warning fill:#fff3cd,stroke:#856404
-    classDef error fill:#f8d7da,stroke:#721c24
-```
-
-## Input Options
-
-Specify what to review using these options:
-
-| Option            | Description                        | Example            |
-| ----------------- | ---------------------------------- | ------------------ |
-| `--pr <number>`   | Review a specific PR               | `--pr 123`         |
-| `--branch <name>` | Review branch vs main/master       | `--branch feat/x`  |
-| `--files <paths>` | Review specific files only         | `--files src/*.ts` |
-| `--base <ref>`    | Compare against specific base ref  | `--base develop`   |
-| `--diff-only`     | Review only changed lines (default)|                    |
-| `--full-context`  | Review entire files for context    |                    |
-
-**Default behavior:** If no options specified, detect from current git state:
-
-1. If on a branch with open PR → review that PR
-2. If on a branch with uncommitted changes → review staged/unstaged changes
-3. If on a branch ahead of main → review commits since divergence
-
-## Configuration
-
-| Option              | Description                  | Default       |
-| ------------------- | ---------------------------- | ------------- |
-| `--output-dir`      | Directory for review files   | `./.reviews/` |
-| `--confidence`      | Min confidence threshold     | `70`          |
-| `--max-reviewers`   | Max review commands to run   | `3`           |
-| `--skip-validation` | Skip Phase 2, use raw results| `false`       |
-| `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
-
-**Output directory structure:**
-
-```text
-.reviews/
-└── 2024-01-23-143052/           # Timestamped run
-    ├── review-<command-1>.md
-    ├── review-<command-2>.md
-    ├── validated-<command-1>.md
-    ├── validated-<command-2>.md
-    └── pr-review-summary.md
-```
 
 ## Phase 0: Discover Available Review Commands
 
@@ -230,14 +87,31 @@ review plugins.
 
 ## Phase 1: Parallel Review Execution
 
-**REMINDER:** Re-read the MANDATORY RULES at the top of this document.
-- Every agent MUST use `"subagent_type": "general-purpose"`
-- Every agent prompt MUST instruct the agent to use the Skill tool
-- NEVER use `code-reviewer`, `coderabbit:code-reviewer`, or any other
-  specialized subagent type
+### Pre-launch checklist
+
+Before launching any agents, verify ALL of the following:
+
+- [ ] Phase 0 discovery report has been printed above
+- [ ] You are using ONLY commands discovered in Phase 0
+- [ ] Every Task tool call below uses `"subagent_type": "general-purpose"`
+- [ ] Every agent prompt tells the agent to use the Skill tool
+
+### Launch agents
 
 Launch **one agent per selected review command** from Phase 0 in a single
-Task tool message.
+Task tool message. Every agent MUST use this exact structure:
+
+```jsonc
+{
+  "subagent_type": "general-purpose",   // REQUIRED — no other value
+  "description": "[SKILL_NAME] review",
+  "prompt": "Use the Skill tool to invoke [SKILL_NAME] on [TARGET]. ...",
+  "run_in_background": true
+}
+```
+
+`[SKILL_NAME]` = the discovered command name from Phase 0.
+`[TARGET]` = the PR number, branch name, or file list being reviewed.
 
 **Concrete example** — if Phase 0 discovered `code-review:code-review`,
 `coderabbit:review`, and `pr-review-toolkit:review-pr`, launch exactly
@@ -288,6 +162,10 @@ Configuration:
 
 **IMPORTANT:** Use `TaskOutput` with `block: true` on ALL agent IDs
 before proceeding. Do NOT write output files until all agents have returned.
+
+```jsonc
+{"task_id": "[agent-id]", "block": true, "timeout": 300000}
+```
 
 After all agents complete, write results to output directory. Name each file
 based on the command that produced it:
@@ -468,57 +346,162 @@ Select action (1-6):
 | **Rerun**   | Re-run on subset         | Useful after partial fixes  |
 | **Done**    | Exit skill               | No further action           |
 
-## Usage Examples
+---
 
-### Basic usage (auto-detect)
+## Reference
+
+### Overview
+
+This skill orchestrates comprehensive code reviews by discovering available
+review commands, running them in parallel, validating their findings, and
+producing an aggregated summary. Reviews are saved to markdown files and
+**never posted directly to the PR**.
+
+**Core principle:** Multiple review perspectives catch more issues. The skill
+dynamically discovers whatever review commands are available in the user's
+environment, rather than requiring specific plugins. Validation filters false
+positives. Aggregation provides an actionable summary.
+
+### Workflow
+
+```mermaid
+flowchart TB
+    Start([Start])
+    Phase0[Phase 0: Discover Review Commands]
+    CommandsFound{Commands found?}
+    ShowInstall[No review commands available]:::warning
+    Stop([STOP]):::error
+    Output([Output final report])
+
+    Start --> Phase0
+    Phase0 --> CommandsFound
+    CommandsFound -->|none| ShowInstall
+    ShowInstall --> Stop
+    CommandsFound -->|1+| Phase1
+
+    subgraph Phase1[Phase 1: Parallel Reviews]
+        direction LR
+        R1[Review Command 1]
+        R2[Review Command 2]
+        RN[Review Command N...]
+    end
+
+    Phase1 --> SaveN[review-*.md files]
+    SaveN --> Phase2
+
+    subgraph Phase2[Phase 2: Parallel Validation]
+        direction LR
+        V1[Validator 1]
+        V2[Validator 2]
+        VN[Validator N...]
+    end
+
+    Phase2 --> VSaveN[validated-*.md files]
+    VSaveN --> Phase3
+
+    Phase3[Phase 3: Aggregate Summary]
+    Phase3 --> Summary[pr-review-summary.md]
+    Summary --> PostActions{Post-review actions?}
+    PostActions -->|yes| Actions[Offer action menu]
+    PostActions -->|no| Output
+    Actions --> Output
+
+    classDef warning fill:#fff3cd,stroke:#856404
+    classDef error fill:#f8d7da,stroke:#721c24
+```
+
+### Input Options
+
+Specify what to review using these options:
+
+| Option            | Description                        | Example            |
+| ----------------- | ---------------------------------- | ------------------ |
+| `--pr <number>`   | Review a specific PR               | `--pr 123`         |
+| `--branch <name>` | Review branch vs main/master       | `--branch feat/x`  |
+| `--files <paths>` | Review specific files only         | `--files src/*.ts` |
+| `--base <ref>`    | Compare against specific base ref  | `--base develop`   |
+| `--diff-only`     | Review only changed lines (default)|                    |
+| `--full-context`  | Review entire files for context    |                    |
+
+**Default behavior:** If no options specified, detect from current git state:
+
+1. If on a branch with open PR → review that PR
+2. If on a branch with uncommitted changes → review staged/unstaged changes
+3. If on a branch ahead of main → review commits since divergence
+
+### Configuration
+
+| Option              | Description                  | Default       |
+| ------------------- | ---------------------------- | ------------- |
+| `--output-dir`      | Directory for review files   | `./.reviews/` |
+| `--confidence`      | Min confidence threshold     | `70`          |
+| `--max-reviewers`   | Max review commands to run   | `3`           |
+| `--skip-validation` | Skip Phase 2, use raw results| `false`       |
+| `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
+
+**Output directory structure:**
+
+```text
+.reviews/
+└── 2024-01-23-143052/           # Timestamped run
+    ├── review-<command-1>.md
+    ├── review-<command-2>.md
+    ├── validated-<command-1>.md
+    ├── validated-<command-2>.md
+    └── pr-review-summary.md
+```
+
+### Usage Examples
+
+#### Basic usage (auto-detect)
 
 ```bash
 Run multi-review
 ```
 
-### Review specific PR
+#### Review specific PR
 
 ```bash
 Run multi-review --pr 123
 ```
 
-### Review with custom settings
+#### Review with custom settings
 
 ```bash
 Run multi-review --pr 123 --confidence 80 --output-dir ./my-reviews
 ```
 
-### Run all discovered reviewers (no cap)
+#### Run all discovered reviewers (no cap)
 
 ```bash
 Run multi-review --pr 123 --max-reviewers 10
 ```
 
-### Skip validation phase
+#### Skip validation phase
 
 ```bash
 Run multi-review --skip-validation
 ```
 
-### Re-run validation on existing results
+#### Re-run validation on existing results
 
 ```bash
 Run multi-review --revalidate --output-dir ./.reviews/2024-01-23-143052
 ```
 
-### Review specific files
+#### Review specific files
 
 ```bash
 Run multi-review --files src/auth/*.ts src/api/login.ts
 ```
 
-### Full context review (not just diff)
+#### Full context review (not just diff)
 
 ```bash
 Run multi-review --pr 123 --full-context
 ```
 
-## Output Files Summary
+### Output Files Summary
 
 | File                           | Phase | Contents                         |
 | ------------------------------ | ----- | -------------------------------- |
@@ -527,7 +510,7 @@ Run multi-review --pr 123 --full-context
 | `pr-review-summary.md`        | 3     | Final aggregated summary         |
 | `fix-suggestions.md`          | Post  | Fix suggestions (optional)       |
 
-## Important Constraints
+### Important Constraints
 
 **DO NOT post to PR:**
 
@@ -543,7 +526,7 @@ Run multi-review --pr 123 --full-context
 - Phase 2: All validators run simultaneously
 - Use single Task tool message with multiple invocations for parallelism
 
-## Error Handling
+### Error Handling
 
 | Scenario                      | Behavior                             |
 | ----------------------------- | ------------------------------------ |
@@ -557,7 +540,7 @@ Run multi-review --pr 123 --full-context
 **Always produce summary even with partial results** - indicate which
 phases succeeded/failed.
 
-## Model Recommendations
+### Model Recommendations
 
 | Phase | Task              | Model  | Rationale                     |
 | ----- | ----------------- | ------ | ----------------------------- |
