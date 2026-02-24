@@ -17,9 +17,9 @@ description: >-
 ### Rule 1: You MUST run Phase 0 (Discovery) FIRST
 
 Do NOT jump straight to launching agents. You MUST first scan the available
-skills list (see Phase 0 below), extract review-related commands, and print
-the discovery report. If you skip this step, you will launch the wrong
-agents.
+skills list (see [Phase 0](#phase-0-discover-available-review-commands)
+below), extract review-related commands, and print the discovery report. If
+you skip this step, you will launch the wrong agents.
 
 ### Rule 2: ONLY use `"subagent_type": "general-purpose"`
 
@@ -29,12 +29,12 @@ Every review agent you launch MUST use `"subagent_type": "general-purpose"`.
 
 | Forbidden value | Why it's wrong |
 |---|---|
-| `code-reviewer` | Not a real agent type for skill invocation |
-| `coderabbit:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
-| `superpowers:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
-| `pr-review-toolkit:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
-| `feature-dev:code-reviewer` | Bypasses Skill tool, runs built-in reviewer |
-| `pr-review-toolkit:silent-failure-hunter` | Bypasses Skill tool, runs built-in failure analysis |
+| `code-reviewer` | Not a valid subagent type; does not exist for skill invocation |
+| `coderabbit:code-reviewer` | Bypasses Skill tool; runs CodeRabbit's built-in agent directly |
+| `superpowers:code-reviewer` | Bypasses Skill tool; runs superpowers built-in code review agent |
+| `pr-review-toolkit:code-reviewer` | Bypasses Skill tool; runs pr-review-toolkit built-in review agent |
+| `feature-dev:code-reviewer` | Bypasses Skill tool; runs feature-dev built-in review agent |
+| `pr-review-toolkit:silent-failure-hunter` | Bypasses Skill tool; runs failure analysis agent, not a code reviewer |
 
 These subagent types exist in the Task tool description but they run
 **built-in agent behaviors**, NOT the review skills/commands. They will
@@ -46,18 +46,22 @@ has installed.
 Each agent's prompt must instruct it to call `Skill` with the discovered
 command name. This is what actually runs the user's installed review plugins.
 
-**Correct agent template:**
+**Correct agent template** (all `[BRACKETED]` values are placeholders to
+substitute — `[SKILL_NAME]` is the discovered command name, `[TARGET]` is
+the PR number, branch name, or file list being reviewed):
 
 ```jsonc
 {
   "subagent_type": "general-purpose",
-  "description": "<review-command-name> review",
-  "prompt": "Use the Skill tool to invoke <SKILL_NAME> on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
+  "description": "[SKILL_NAME] review",
+  "prompt": "Use the Skill tool to invoke [SKILL_NAME] on [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
 
 ### Rule 4: WAIT for all agents before proceeding
+
+**DO NOT proceed to Phase 2 or write output files until ALL agents complete.**
 
 Use `TaskOutput` with `block: true` on every agent ID before writing output
 files or proceeding to Phase 2.
@@ -65,8 +69,6 @@ files or proceeding to Phase 2.
 ```jsonc
 {"task_id": "[agent-id]", "block": true, "timeout": 300000}
 ```
-
-**DO NOT proceed to Phase 2 or write output files until ALL agents complete.**
 
 ---
 
@@ -200,6 +202,7 @@ appear in the list — do not assume any specific skill is available.
 
 **Step 3: Filter.**
 - Exclude anything containing `parallel-pr-review` (this skill — avoids recursion).
+- Exclude `silent-failure-hunter` variants (failure analysis tool, not a code reviewer).
 - If the same plugin appears twice with different command names (e.g.,
   `coderabbit:review` and `coderabbit:code-review`), pick only one
   (prefer the variant whose name most closely matches the review goal,
@@ -267,7 +270,7 @@ these three Task tool calls in one message:
 For each agent, the prompt should follow this structure:
 
 ```
-Use the Skill tool to invoke <SKILL_NAME> on [TARGET].
+Use the Skill tool to invoke [SKILL_NAME] on [TARGET].
 
 CRITICAL INSTRUCTIONS:
 1. Do NOT post any comments to the PR
