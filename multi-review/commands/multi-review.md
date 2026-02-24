@@ -6,7 +6,7 @@ allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Task"]
 
 # Multi Review Command
 
-Run a comprehensive PR review using multiple independent review commands in parallel.
+Run a comprehensive code review using multiple independent review agents in parallel.
 
 **Arguments:** $ARGUMENTS
 
@@ -14,8 +14,8 @@ Run a comprehensive PR review using multiple independent review commands in para
 
 Use the `multi-review` skill to execute a multi-phase review:
 
-1. Discover available review commands in the environment (exclude multi-review itself)
-2. Run discovered review commands in parallel (up to `--max-reviewers`, default 3)
+1. Discover available review agent types in the environment (exclude multi-review itself)
+2. Run discovered review agents in parallel (up to `--max-reviewers`, default 3)
 3. Validate findings to filter false positives
 4. Aggregate into a deduplicated summary
 

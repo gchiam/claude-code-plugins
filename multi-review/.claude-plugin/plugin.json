@@ -1,6 +1,6 @@
 {
   "name": "multi-review",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Multi-perspective code review with validation and aggregation",
   "author": {
     "name": "gchiam"

@@ -1,6 +1,6 @@
 # Multi Review
 
-A Claude Code skill that discovers available review commands and runs them in
+A Claude Code skill that discovers available review agents and runs them in
 parallel, validates the findings, and produces an aggregated summary.
 
 ## Why Use This?
@@ -26,7 +26,7 @@ claude "Run multi-review --pr 123 --confidence 80"
 
 ## Suggested Review Plugins
 
-This skill works with any review commands you have installed. Here are some
+This skill works with any review plugins you have installed. Here are some
 recommended plugins to get the most out of parallel reviews:
 
 ```bash
@@ -49,20 +49,20 @@ cross-validation.
 
 ## How It Works
 
-The skill automatically discovers review-related commands available in your
-environment (e.g., `/code-review`, `/pr-review-toolkit:review-pr`,
-`/coderabbit:review`) and runs them in parallel (up to `--max-reviewers`,
+The skill automatically discovers review-related agent types available in your
+environment (e.g., `coderabbit:code-reviewer`, `pr-review-toolkit:code-reviewer`,
+`superpowers:code-reviewer`) and runs them in parallel (up to `--max-reviewers`,
 default 3).
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 0: Discover available review commands                        │
+│  Phase 0: Discover available review agents                          │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │  Phase 1: Run discovered reviews in PARALLEL                        │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐                │
-│  │ Review Cmd 1 │ │ Review Cmd 2 │ │ Review Cmd 3 │                │
+│  │ Reviewer 1   │ │ Reviewer 2   │ │ Reviewer 3   │                │
 │  └──────────────┘ └──────────────┘ └──────────────┘                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
@@ -88,8 +88,8 @@ All results are saved to `.reviews/<timestamp>/`:
 
 | File                          | Description                             |
 | ----------------------------- | --------------------------------------- |
-| `review-<command>.md`         | Raw findings from each review command   |
-| `validated-<command>.md`      | Filtered findings per command           |
+| `review-<reviewer>.md`        | Raw findings from each review agent     |
+| `validated-<reviewer>.md`     | Filtered findings per reviewer          |
 | `pr-review-summary.md`       | **Final aggregated report**             |
 
 ## Options
@@ -109,7 +109,7 @@ All results are saved to `.reviews/<timestamp>/`:
 | ------------------- | ------------- | -------------------------------- |
 | `--output-dir`      | `./.reviews/` | Where to save results            |
 | `--confidence`      | `70`          | Min confidence to include (0-100)|
-| `--max-reviewers`   | `3`           | Max review commands to run       |
+| `--max-reviewers`   | `3`           | Max review agents to run         |
 | `--skip-validation` | `false`       | Skip Phase 2 for faster results  |
 
 ## Examples
@@ -172,8 +172,8 @@ After the review completes, you'll see an action menu:
 **Q: Will this post comments to my PR automatically?**
 A: No. All output goes to markdown files. You decide what to post.
 
-**Q: What review commands does it use?**
-A: It auto-discovers available review commands in your environment. Install
+**Q: What review agents does it use?**
+A: It auto-discovers available review agent types in your environment. Install
 any review plugins you like and this skill will use them.
 
 **Q: What if one reviewer fails?**

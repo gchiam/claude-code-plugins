@@ -17,72 +17,44 @@ description: >-
 1. **Phase 0 first.** Complete Phase 0 and print the discovery report
    before doing anything else. If you skip this, you will launch the
    wrong agents.
-2. **`"subagent_type": "general-purpose"` only.** Every Task tool call
-   that launches a review agent must set `"subagent_type"` to exactly
-   `"general-purpose"`. No other value is permitted — any other subagent
-   type bypasses the Skill tool and runs a built-in agent behavior
-   instead of the user's installed review plugins.
-3. **Each agent must invoke the Skill tool.** The agent's prompt must
-   instruct it to call the Skill tool with the discovered command name.
-   This is what actually runs the review plugin.
-4. **Wait for all agents.** Use `TaskOutput` with `block: true` on
+2. **Wait for all agents.** Use `TaskOutput` with `block: true` on
    every agent ID before writing output files or starting the next phase.
 
 ---
 
-## Phase 0: Discover Available Review Commands
+## Phase 0: Discover Available Review Agents
 
-Instead of requiring specific plugins, discover what review commands are
-available in the current environment.
+Discover what review agent types are available by inspecting the Task
+tool's `subagent_type` list in the system prompt.
 
-**Step 1: Find the skill list.** Look at the system-reminder messages earlier
-in the conversation for the block that starts with "The following skills are
-available for use with the Skill tool:". This is the authoritative list.
+**Step 1: Extract review-related agent types.** Look at the Task tool
+description for agent types whose name or description mentions "review",
+"code review", "PR review", or "code quality". These use the
+`plugin:agent-name` format (e.g., `coderabbit:code-reviewer`).
 
-**Step 2: Extract review-related entries.** Go through every line in that
-list and pick out entries whose name or description mentions "review",
-"code review", "PR review", "security review", or "code quality".
-
-Here are examples of what to look for (your environment may differ):
-
-| Skill list entry | Invoke as |
-|------------------|-----------|
-| `code-review:code-review: Code review a pull request` | `code-review:code-review` |
-| `coderabbit:review: Run CodeRabbit AI code review...` | `coderabbit:review` |
-| `coderabbit:code-review: Reviews code changes using CodeRabbit AI...` | `coderabbit:code-review` |
-| `pr-review-toolkit:review-pr: Comprehensive PR review...` | `pr-review-toolkit:review-pr` |
-| `security-review: Complete a security review...` | `security-review` |
-
-Note: skills appear in both `plugin:command` format and standalone names.
-Both are valid and should be included. Only include skills that actually
-appear in the list — do not assume any specific skill is available.
-
-**Step 3: Filter.**
+**Step 2: Filter.**
 - Exclude anything containing `multi-review` (this skill — avoids recursion).
-- Exclude `silent-failure-hunter` variants (failure analysis tool, not a code reviewer).
-- If the same plugin appears twice with different command names (e.g.,
-  `coderabbit:review` and `coderabbit:code-review`), pick only one
-  (prefer the variant whose name most closely matches the review goal,
-  or the first listed if unclear).
-- Select up to `--max-reviewers` commands (default: 3). If more are
+- If the same plugin appears with multiple agent types, pick the one
+  most focused on code review.
+- Select up to `--max-reviewers` agents (default: 3). If more are
   available, prefer diversity of perspective (general review, security
-  review, style/quality review). Report all discovered commands and
+  review, style/quality review). Report all discovered agents and
   indicate which were selected vs skipped.
 
-**Step 4: Report.**
+**Step 3: Report.**
 
 ```text
 Multi Review - PR #123
 ════════════════════════════════════════
 
-[✓] Phase 0: Discovered N review commands (max-reviewers: 3):
-    ├── [selected] code-review:code-review
-    ├── [selected] coderabbit:review
-    ├── [selected] pr-review-toolkit:review-pr
-    └── [skipped]  security-review          # only shown when cap reached
+[✓] Phase 0: Discovered N review agents (max-reviewers: 3):
+    ├── [selected] coderabbit:code-reviewer
+    ├── [selected] pr-review-toolkit:code-reviewer
+    ├── [selected] superpowers:code-reviewer
+    └── [skipped]  feature-dev:code-reviewer    # only shown when cap reached
 ```
 
-If zero review commands are found, **STOP** and inform the user to install
+If zero review agents are found, **STOP** and inform the user to install
 review plugins.
 
 ## Phase 1: Parallel Review Execution
@@ -92,31 +64,29 @@ review plugins.
 Before launching any agents, verify ALL of the following:
 
 - [ ] Phase 0 discovery report has been printed above
-- [ ] You are using ONLY commands discovered in Phase 0
-- [ ] Every Task tool call below uses `"subagent_type": "general-purpose"`
-- [ ] Every agent prompt tells the agent to use the Skill tool
+- [ ] You are using ONLY agent types discovered in Phase 0
 
 ### Launch agents
 
-Launch **one agent per selected review command** from Phase 0 in a single
-Task tool message. Every agent MUST use this exact structure:
+Launch **one agent per selected review agent type** from Phase 0 in a
+single Task tool message:
 
 ```jsonc
 {
-  "subagent_type": "general-purpose",   // REQUIRED — no other value
-  "description": "[SKILL_NAME] review",
-  "prompt": "Use the Skill tool to invoke [SKILL_NAME] on [TARGET]. ...",
+  "subagent_type": "[AGENT_TYPE]",       // from Phase 0 discovery
+  "description": "[AGENT_TYPE] review",
+  "prompt": "Review [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
 
-`[SKILL_NAME]` = the discovered command name from Phase 0.
+`[AGENT_TYPE]` = the discovered agent type from Phase 0 (e.g., `coderabbit:code-reviewer`).
 `[TARGET]` = the PR number, branch name, or file list being reviewed.
 
-For each agent, the prompt should follow this structure:
+For each agent, the prompt should include:
 
 ```
-Use the Skill tool to invoke [SKILL_NAME] on [TARGET].
+Review [TARGET].
 
 CRITICAL INSTRUCTIONS:
 1. Do NOT post any comments to the PR
@@ -140,20 +110,20 @@ before proceeding. Do NOT write output files until all agents have returned.
 ```
 
 After all agents complete, write results to output directory. Name each file
-based on the command that produced it:
+based on the agent type that produced it:
 
-- `review-<command-short-name>.md` - Output from each review command
+- `review-<short-name>.md` - Output from each reviewer
 
-Use a short name derived from the command (e.g., `code-review` from
-`code-review:code-review`, `pr-toolkit` from `pr-review-toolkit:review-pr`,
-`security` from `security-review`).
+Use a short name derived from the agent type (e.g., `coderabbit` from
+`coderabbit:code-reviewer`, `pr-toolkit` from `pr-review-toolkit:code-reviewer`,
+`superpowers` from `superpowers:code-reviewer`).
 
 Include header in each file:
 
 ```markdown
 # Code Review Results
 
-**Source:** <command-name>
+**Source:** <agent-type>
 **Target:** PR #123 / branch-name
 **Date:** 2024-01-23 14:30:52
 **Scope:** diff-only
@@ -164,14 +134,11 @@ Include header in each file:
 
 ## Phase 2: Parallel Validation
 
-Launch **one validation agent per review output** (using
-`subagent_type: "general-purpose"`) to evaluate findings:
+Launch **one validation agent per review output** to evaluate findings:
 
 ### Validator prompt template
 
 ```markdown
-**Task prompt for Validator (Sonnet recommended):**
-
 Read and evaluate the findings in review-<name>.md.
 
 For each issue found:
@@ -192,7 +159,7 @@ Output: Validated findings with confidence scores and reasoning.
 
 ### Validation Output Files
 
-- `validated-<command-short-name>.md` - Validated findings from each review
+- `validated-<short-name>.md` - Validated findings from each review
 
 ## Phase 3: Aggregate Summary
 
@@ -263,7 +230,7 @@ Specify what to review using these options:
 | ------------------- | ---------------------------- | ------------- |
 | `--output-dir`      | Directory for review files   | `./.reviews/` |
 | `--confidence`      | Min confidence threshold     | `70`          |
-| `--max-reviewers`   | Max review commands to run   | `3`           |
+| `--max-reviewers`   | Max review agents to run     | `3`           |
 | `--skip-validation` | Skip Phase 2, use raw results| `false`       |
 | `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
 
@@ -271,8 +238,8 @@ Specify what to review using these options:
 
 | Scenario                      | Behavior                             |
 | ----------------------------- | ------------------------------------ |
-| One command fails in Phase 1  | Continue with available, warn user   |
-| All commands fail in Phase 1  | Abort with error details             |
+| One agent fails in Phase 1    | Continue with available, warn user   |
+| All agents fail in Phase 1    | Abort with error details             |
 | Validation fails              | Use unvalidated results with warning |
 | Output directory not writable | Fallback to current directory        |
 | PR not found                  | Prompt for correct PR number         |
