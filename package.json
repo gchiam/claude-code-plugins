@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "validate": "bash scripts/validate.sh"
   },
   "description": "Personal collection of Claude Code plugins",
   "workspaces": [
