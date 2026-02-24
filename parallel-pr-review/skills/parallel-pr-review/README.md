@@ -51,8 +51,8 @@ cross-validation.
 
 The skill automatically discovers review-related commands available in your
 environment (e.g., `/code-review`, `/pr-review-toolkit:review-pr`,
-`/security-review`, `/coderabbit:code-review`) and runs up to 3 of them in
-parallel.
+`/coderabbit:review`) and runs them in parallel (up to `--max-reviewers`,
+default 3).
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -109,6 +109,7 @@ All results are saved to `.reviews/<timestamp>/`:
 | ------------------- | ------------- | -------------------------------- |
 | `--output-dir`      | `./.reviews/` | Where to save results            |
 | `--confidence`      | `70`          | Min confidence to include (0-100)|
+| `--max-reviewers`   | `3`           | Max review commands to run       |
 | `--skip-validation` | `false`       | Skip Phase 2 for faster results  |
 
 ## Examples
@@ -125,6 +126,9 @@ claude "Run parallel-pr-review --confidence 85"
 
 # Quick review - skip validation phase
 claude "Run parallel-pr-review --skip-validation"
+
+# Run all discovered reviewers (no practical cap)
+claude "Run parallel-pr-review --max-reviewers 10"
 
 # Review specific files
 claude "Run parallel-pr-review --files src/auth.ts src/login.ts"

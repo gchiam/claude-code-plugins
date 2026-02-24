@@ -135,6 +135,7 @@ Specify what to review using these options:
 | ------------------- | ---------------------------- | ------------- |
 | `--output-dir`      | Directory for review files   | `./.reviews/` |
 | `--confidence`      | Min confidence threshold     | `70`          |
+| `--max-reviewers`   | Max review commands to run   | `3`           |
 | `--skip-validation` | Skip Phase 2, use raw results| `false`       |
 | `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
 
@@ -183,8 +184,10 @@ appear in the list — do not assume any specific skill is available.
   `coderabbit:review` and `coderabbit:code-review`), pick only one
   (prefer the variant whose name most closely matches the review goal,
   or the first listed if unclear).
-- Select up to 3 commands. If more are available, prefer diversity of
-  perspective (general review, security review, style/quality review).
+- Select up to `--max-reviewers` commands (default: 3). If more are
+  available, prefer diversity of perspective (general review, security
+  review, style/quality review). Report all discovered commands and
+  indicate which were selected vs skipped.
 
 **Step 4: Report.**
 
@@ -192,10 +195,11 @@ appear in the list — do not assume any specific skill is available.
 Parallel PR Review - PR #123
 ════════════════════════════════════════
 
-[✓] Phase 0: Discovered N review commands:
-    ├── code-review:code-review
-    ├── coderabbit:review
-    └── pr-review-toolkit:review-pr
+[✓] Phase 0: Discovered N review commands (max-reviewers: 3):
+    ├── [selected] code-review:code-review
+    ├── [selected] coderabbit:review
+    ├── [selected] pr-review-toolkit:review-pr
+    └── [skipped]  security-review          # only shown when cap reached
 ```
 
 If zero review commands are found, **STOP** and inform the user to install
@@ -454,6 +458,12 @@ Run parallel-pr-review --pr 123
 
 ```bash
 Run parallel-pr-review --pr 123 --confidence 80 --output-dir ./my-reviews
+```
+
+### Run all discovered reviewers (no cap)
+
+```bash
+Run parallel-pr-review --pr 123 --max-reviewers 10
 ```
 
 ### Skip validation phase

@@ -56,8 +56,8 @@ Or use the command:
 
 **Features:**
 
-- Auto-discovers available review commands (code-review, pr-review-toolkit, security-review, etc.)
-- Parallel execution of up to 3 review commands
+- Auto-discovers available review commands (code-review, pr-review-toolkit, coderabbit, etc.)
+- Parallel execution with configurable max reviewers (default 3)
 - Validation phase to filter false positives
 - Deduplication of findings across reviewers
 - Configurable confidence threshold
