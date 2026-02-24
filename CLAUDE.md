@@ -35,3 +35,22 @@ fix(jira-cli): handle missing API token
 docs(repo): update installation instructions
 build(repo): add commitlint configuration
 ```
+
+## Dev Workflow
+
+### Validate all plugins
+```
+npm run validate
+```
+
+### Test a plugin locally
+```
+npm run dev -- <plugin-name>
+```
+Launches a Claude session with the plugin loaded from your working tree. Edit files, re-run — no install needed.
+
+### Scaffold a new plugin
+```
+npm run scaffold -- <plugin-name>
+```
+Creates the directory structure and registers the plugin in marketplace.json, commitlint.config.js, and package.json workspaces.
