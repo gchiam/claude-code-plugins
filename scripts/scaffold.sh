@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Scaffolds a new Claude Code plugin with the correct directory structure
-# and registers it in marketplace.json and commitlint.config.js.
+# and registers it in marketplace.json, commitlint.config.js, and package.json workspaces.
 #
 # Usage: npm run scaffold -- <plugin-name>
 # Example: npm run scaffold -- my-new-plugin
@@ -9,6 +9,13 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+for cmd in node; do
+  if ! command -v "$cmd" &>/dev/null; then
+    echo "Error: '$cmd' is required but not found on PATH"
+    exit 1
+  fi
+done
 
 if [ $# -eq 0 ]; then
   echo "Usage: npm run scaffold -- <plugin-name>"
@@ -31,6 +38,30 @@ if [ -d "$PLUGIN_DIR" ]; then
 fi
 
 echo "=== Scaffolding plugin: $PLUGIN_NAME ==="
+
+# Clean up on failure: remove created directory and restore modified config files
+BACKUP_DIR=$(mktemp -d)
+CLEANUP_FILES=()
+
+cleanup_on_failure() {
+  echo ""
+  echo "Error: Scaffold failed. Rolling back changes..."
+  if [ -d "$PLUGIN_DIR" ]; then
+    rm -rf "$PLUGIN_DIR"
+    echo "  Removed $PLUGIN_DIR"
+  fi
+  for f in "${CLEANUP_FILES[@]}"; do
+    local backup="$BACKUP_DIR/$(basename "$f")"
+    if [ -f "$backup" ]; then
+      cp "$backup" "$f"
+      echo "  Restored $f"
+    fi
+  done
+  rm -rf "$BACKUP_DIR"
+  echo "Rollback complete."
+}
+
+trap cleanup_on_failure ERR
 
 # Create directory structure
 mkdir -p "$PLUGIN_DIR/.claude-plugin"
@@ -80,12 +111,22 @@ TODO: Describe how to use this skill.
 EOF
 
 # Register in marketplace.json
+cp "$REPO_ROOT/.claude-plugin/marketplace.json" "$BACKUP_DIR/"
+CLEANUP_FILES+=("$REPO_ROOT/.claude-plugin/marketplace.json")
 PLUGIN_NAME="$PLUGIN_NAME" REPO_ROOT="$REPO_ROOT" node -e "
 const fs = require('fs');
 const pluginName = process.env.PLUGIN_NAME;
 const repoRoot = process.env.REPO_ROOT;
 const filePath = repoRoot + '/.claude-plugin/marketplace.json';
 const m = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+if (!Array.isArray(m.plugins)) {
+  console.error('Error: marketplace.json is missing a plugins array');
+  process.exit(1);
+}
+if (m.plugins.some(p => p.name === pluginName)) {
+  console.error('Error: Plugin ' + pluginName + ' already exists in marketplace.json');
+  process.exit(1);
+}
 m.plugins.push({
   name: pluginName,
   source: './' + pluginName,
@@ -95,35 +136,51 @@ fs.writeFileSync(filePath, JSON.stringify(m, null, 2) + '\n');
 "
 
 # Register scope in commitlint.config.js
+cp "$REPO_ROOT/commitlint.config.js" "$BACKUP_DIR/"
+CLEANUP_FILES+=("$REPO_ROOT/commitlint.config.js")
 PLUGIN_NAME="$PLUGIN_NAME" REPO_ROOT="$REPO_ROOT" node -e "
 const fs = require('fs');
 const pluginName = process.env.PLUGIN_NAME;
 const repoRoot = process.env.REPO_ROOT;
 const filePath = repoRoot + '/commitlint.config.js';
 let content = fs.readFileSync(filePath, 'utf8');
+const before = content;
 content = content.replace(
-  /('scope-enum':\s*\[2,\s*'always',\s*\[)(.*?)(\]\])/,
+  /('scope-enum':\s*\[2,\s*'always',\s*\[)([\s\S]*?)(\]\])/,
   (match, prefix, scopes, suffix) => {
     const scopeList = scopes.split(',').map(s => s.trim());
     scopeList.push(\"'\" + pluginName + \"'\");
     return prefix + scopeList.join(', ') + suffix;
   }
 );
+if (content === before) {
+  console.error('Error: Failed to register scope in commitlint.config.js — scope-enum pattern not found');
+  process.exit(1);
+}
 fs.writeFileSync(filePath, content);
 "
 
 # Register as npm workspace
+cp "$REPO_ROOT/package.json" "$BACKUP_DIR/"
+CLEANUP_FILES+=("$REPO_ROOT/package.json")
 PLUGIN_NAME="$PLUGIN_NAME" REPO_ROOT="$REPO_ROOT" node -e "
 const fs = require('fs');
 const pluginName = process.env.PLUGIN_NAME;
 const repoRoot = process.env.REPO_ROOT;
 const filePath = repoRoot + '/package.json';
 const pkg = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+if (!Array.isArray(pkg.workspaces)) {
+  console.error('Error: package.json is missing a workspaces array');
+  process.exit(1);
+}
 if (!pkg.workspaces.includes(pluginName)) {
   pkg.workspaces.push(pluginName);
 }
 fs.writeFileSync(filePath, JSON.stringify(pkg, null, 2) + '\n');
 "
+
+rm -rf "$BACKUP_DIR"
+trap - ERR
 
 echo ""
 echo "Plugin '$PLUGIN_NAME' created successfully!"
