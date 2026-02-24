@@ -115,13 +115,33 @@ claude-code-plugins/
 
 ## Development
 
-To test changes locally:
+```bash
+npm install
+```
+
+### Validate all plugins
 
 ```bash
-# Run Claude with a specific plugin directory
-claude --plugin-dir ./multi-review
-claude --plugin-dir ./jira-cli
+npm run validate
 ```
+
+Runs `claude plugin validate` on every plugin and the marketplace manifest, and checks file structure. Also runs automatically as a pre-commit hook.
+
+### Test a plugin locally
+
+```bash
+npm run dev -- multi-review
+```
+
+Launches a Claude session with the plugin loaded from your working tree via `--plugin-dir`. Edit files, re-run — no install needed.
+
+### Scaffold a new plugin
+
+```bash
+npm run scaffold -- my-new-plugin
+```
+
+Creates the directory structure and registers the plugin in `marketplace.json`, `commitlint.config.js`, and `package.json` workspaces.
 
 ## License
 
