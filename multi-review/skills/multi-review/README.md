@@ -31,16 +31,16 @@ recommended plugins to get the most out of parallel reviews:
 
 ```bash
 # General code review (from Anthropic's official plugins)
-/plugin install code-review@claude-plugins-official
+claude plugin install code-review@claude-plugins-official
 
 # Multi-agent PR review with error handling and security analysis
-/plugin install pr-review-toolkit@claude-plugins-official
+claude plugin install pr-review-toolkit@claude-plugins-official
 
 # CodeRabbit AI-powered code review
-/plugin install coderabbit@claude-plugins-official
+claude plugin install coderabbit@claude-plugins-official
 
 # Security-focused review (from Anthropic's official plugins)
-/plugin install superpowers@claude-plugins-official
+claude plugin install superpowers@claude-plugins-official
 ```
 
 You don't need all of them — the skill will use whatever is available. Even a

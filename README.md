@@ -8,11 +8,11 @@ Personal collection of Claude Code plugins.
 
 ```bash
 # Step 1: Add the marketplace
-/plugin marketplace add gchiam/claude-code-plugins
+claude plugin marketplace add gchiam/claude-code-plugins
 
 # Step 2: Install individual plugins
-/plugin install multi-review@gchiam-plugins
-/plugin install jira-cli@gchiam-plugins
+claude plugin install multi-review@gchiam-plugins
+claude plugin install jira-cli@gchiam-plugins
 ```
 
 ### From local clone
@@ -21,18 +21,18 @@ Personal collection of Claude Code plugins.
 git clone https://github.com/gchiam/claude-code-plugins.git
 
 # Add as local marketplace
-/plugin marketplace add ./claude-code-plugins
+claude plugin marketplace add ./claude-code-plugins
 ```
 
 ## Uninstallation
 
 ```bash
 # Remove individual plugins
-/plugin uninstall multi-review
-/plugin uninstall jira-cli
+claude plugin remove multi-review
+claude plugin remove jira-cli
 
 # Optionally remove the marketplace
-/plugin marketplace remove gchiam-plugins
+claude plugin marketplace remove gchiam-plugins
 ```
 
 ## Available Plugins
