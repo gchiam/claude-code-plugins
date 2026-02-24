@@ -1,0 +1,19 @@
+{
+  "branches": ["main"],
+  "tagFormat": "${name}-v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/exec", {
+      "prepareCmd": "bash ${process.cwd()}/scripts/sync-plugin-version.sh"
+    }],
+    ["@semantic-release/git", {
+      "assets": [
+        "package.json",
+        ".claude-plugin/plugin.json"
+      ],
+      "message": "chore(release): ${nextRelease.name} [skip ci]"
+    }],
+    "@semantic-release/github"
+  ]
+}
