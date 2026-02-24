@@ -18,7 +18,7 @@ fi
 PLUGIN_NAME="$1"
 
 # Validate name: lowercase, alphanumeric + hyphens
-if ! echo "$PLUGIN_NAME" | grep -qE '^[a-z][a-z0-9-]*$'; then
+if ! echo "$PLUGIN_NAME" | grep -qE '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'; then
   echo "Error: Plugin name must be lowercase alphanumeric with hyphens (e.g., 'my-plugin')"
   exit 1
 fi
@@ -80,44 +80,49 @@ TODO: Describe how to use this skill.
 EOF
 
 # Register in marketplace.json
-node -e "
+PLUGIN_NAME="$PLUGIN_NAME" REPO_ROOT="$REPO_ROOT" node -e "
 const fs = require('fs');
-const path = '$REPO_ROOT/.claude-plugin/marketplace.json';
-const m = JSON.parse(fs.readFileSync(path, 'utf8'));
+const pluginName = process.env.PLUGIN_NAME;
+const repoRoot = process.env.REPO_ROOT;
+const filePath = repoRoot + '/.claude-plugin/marketplace.json';
+const m = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 m.plugins.push({
-  name: '$PLUGIN_NAME',
-  source: './$PLUGIN_NAME',
+  name: pluginName,
+  source: './' + pluginName,
   description: 'TODO: Add plugin description'
 });
-fs.writeFileSync(path, JSON.stringify(m, null, 2) + '\n');
+fs.writeFileSync(filePath, JSON.stringify(m, null, 2) + '\n');
 "
 
 # Register scope in commitlint.config.js
-node -e "
+PLUGIN_NAME="$PLUGIN_NAME" REPO_ROOT="$REPO_ROOT" node -e "
 const fs = require('fs');
-const path = '$REPO_ROOT/commitlint.config.js';
-let content = fs.readFileSync(path, 'utf8');
-// Find the scope-enum array and add the new scope
+const pluginName = process.env.PLUGIN_NAME;
+const repoRoot = process.env.REPO_ROOT;
+const filePath = repoRoot + '/commitlint.config.js';
+let content = fs.readFileSync(filePath, 'utf8');
 content = content.replace(
   /('scope-enum':\s*\[2,\s*'always',\s*\[)(.*?)(\]\])/,
   (match, prefix, scopes, suffix) => {
     const scopeList = scopes.split(',').map(s => s.trim());
-    scopeList.push(\"'$PLUGIN_NAME'\");
+    scopeList.push(\"'\" + pluginName + \"'\");
     return prefix + scopeList.join(', ') + suffix;
   }
 );
-fs.writeFileSync(path, content);
+fs.writeFileSync(filePath, content);
 "
 
 # Register as npm workspace
-node -e "
+PLUGIN_NAME="$PLUGIN_NAME" REPO_ROOT="$REPO_ROOT" node -e "
 const fs = require('fs');
-const path = '$REPO_ROOT/package.json';
-const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
-if (!pkg.workspaces.includes('$PLUGIN_NAME')) {
-  pkg.workspaces.push('$PLUGIN_NAME');
+const pluginName = process.env.PLUGIN_NAME;
+const repoRoot = process.env.REPO_ROOT;
+const filePath = repoRoot + '/package.json';
+const pkg = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+if (!pkg.workspaces.includes(pluginName)) {
+  pkg.workspaces.push(pluginName);
 }
-fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+fs.writeFileSync(filePath, JSON.stringify(pkg, null, 2) + '\n');
 "
 
 echo ""
