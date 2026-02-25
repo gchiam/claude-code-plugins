@@ -1,6 +1,9 @@
 # Review output directories
 .reviews/
 
+# Git worktrees
+.worktrees/
+
 # macOS
 .DS_Store
 
