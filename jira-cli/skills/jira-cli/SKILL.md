@@ -79,7 +79,10 @@ Common JQL patterns:
 - Text search: `-q "summary ~ 'login bug'"`
 - Recently updated: `-q "updated >= -7d AND assignee = currentUser()"`
 - Unassigned: `-q "assignee IS EMPTY AND project = PROJ"`
-- Sub-tasks: `-q "parent = EPIC-123"`
+- Sub-tasks: `-q "parent = STORY-123"`
+- Epic children: `-q "'Epic Link' = EPIC-123"`
+- Linked issues: `-q "issue in linkedIssues('ISSUE-123')"`
+- Linked issues (by type): `-q "issue in linkedIssues('ISSUE-123', 'is a parent of')"`
 
 ## Reading Output
 
@@ -433,6 +436,41 @@ jira issue worklog add ISSUE-123 "2h 30m" --comment "Implementation" --no-input
 ```bash
 jira issue link ISSUE-123 ISSUE-456 Blocks
 jira issue clone ISSUE-123 -s"Cloned: New summary"
+```
+
+### Querying Linked Issues
+
+Jira has multiple parent-child relationship types. Each uses different JQL:
+
+| Relationship | JQL | Example |
+|---|---|---|
+| Subtask | `parent = KEY` | `parent = STORY-123` |
+| Epic children | `"Epic Link" = KEY` | `"Epic Link" = EPIC-42` |
+| Issue links (all types) | `issue in linkedIssues(KEY)` | `issue in linkedIssues('PROJ-100')` |
+| Issue links (filtered) | `issue in linkedIssues(KEY, 'phrase')` | `issue in linkedIssues('PROJ-100', 'is a parent of')` |
+
+**Gotcha:** The `linkedIssues()` type filter uses the **inward/outward phrase**
+(e.g., `'is a parent of'`), NOT the link type name (e.g., `'Composition'`).
+To find the exact phrase, inspect the raw JSON:
+
+```bash
+jira issue view ISSUE-123 --raw | jq '.fields.issuelinks[].type'
+```
+
+**Fallback:** If `linkedIssues()` JQL returns no results, use `--raw` on
+the parent issue and parse `issuelinks` directly — this always works regardless
+of link type configuration:
+
+```bash
+jira issue view PARENT-123 --raw | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for l in data['fields'].get('issuelinks', []):
+    for direction in ['inwardIssue', 'outwardIssue']:
+        issue = l.get(direction)
+        if issue:
+            f = issue['fields']
+            print(f\"{issue['key']}\t{f['status']['name']}\t{f['summary']}\")"
 ```
 
 ## Epics
