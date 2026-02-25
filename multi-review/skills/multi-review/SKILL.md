@@ -67,8 +67,9 @@ Multi Review - PR #<NUMBER>
 
 After printing the discovery report, use `AskUserQuestion` with
 `multiSelect: true` to let the user pick which agents to run. List ALL
-discovered agents as options — pre-select the ones marked `[selected]`
-in the report. The user can check or uncheck any agent.
+discovered agents as options. Append "(Recommended)" to the label of
+agents marked `[selected]` in the report so the user knows which ones
+were auto-selected.
 
 Set `max-reviewers` to the number of agents the user selected.
 
