@@ -444,10 +444,15 @@ Jira has multiple parent-child relationship types. Each uses different JQL:
 
 | Relationship | JQL | Example |
 |---|---|---|
-| Subtask | `parent = KEY` | `parent = STORY-123` |
+| Native subtask | `parent = KEY` | `parent = STORY-123` |
 | Epic children | `"Epic Link" = KEY` | `"Epic Link" = EPIC-42` |
 | Issue links (all types) | `issue in linkedIssues(KEY)` | `issue in linkedIssues('PROJ-100')` |
 | Issue links (filtered) | `issue in linkedIssues(KEY, 'phrase')` | `issue in linkedIssues('PROJ-100', 'is a parent of')` |
+
+**Important:** `--parent`, `parent = KEY`, and `childIssuesOf()` only work for
+Jira's **native subtask hierarchy**. Custom link types (e.g., Composition,
+"is parent of") are NOT subtasks — they are issue links. JQL functions like
+`linkedIssues()` may also fail if the link name doesn't match exactly.
 
 **Gotcha:** The `linkedIssues()` type filter uses the **inward/outward phrase**
 (e.g., `'is a parent of'`), NOT the link type name (e.g., `'Composition'`).
@@ -457,20 +462,16 @@ To find the exact phrase, inspect the raw JSON:
 jira issue view ISSUE-123 --raw | jq '.fields.issuelinks[].type'
 ```
 
-**Fallback:** If `linkedIssues()` JQL returns no results, use `--raw` on
-the parent issue and parse `issuelinks` directly — this always works regardless
+**Recommended fallback:** When JQL link queries return no results, view the
+parent issue directly and parse `issuelinks` — this always works regardless
 of link type configuration:
 
 ```bash
-jira issue view PARENT-123 --raw | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-for l in data['fields'].get('issuelinks', []):
-    for direction in ['inwardIssue', 'outwardIssue']:
-        issue = l.get(direction)
-        if issue:
-            f = issue['fields']
-            print(f\"{issue['key']}\t{f['status']['name']}\t{f['summary']}\")"
+# List all linked issues with their link type, status, and summary
+jira issue view PARENT-123 --raw | jq -r '
+  .fields.issuelinks[] |
+  (.inwardIssue // .outwardIssue) as $issue |
+  "\(.type.inward // .type.outward)\t\($issue.key)\t\($issue.fields.status.name)\t\($issue.fields.summary)"'
 ```
 
 ## Epics
