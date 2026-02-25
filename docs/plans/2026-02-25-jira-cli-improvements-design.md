@@ -25,8 +25,8 @@ with better coverage.
    c. Defensive Patterns     (MOVE UP from end of document)
 4. Discovery Patterns        (NEW)
    - Project keys, sprint IDs, status names, custom field IDs, issue types
-5. Common Workflows          (EXPAND from 4 to 8)
-   - Existing: Start of Day, Pick Up Issue, Complete Issue, Create Bug
+5. Common Workflows          (EXPAND from 5 to 9)
+   - Existing: Start of Day, Pick Up Issue, Complete Issue, Create Bug, Bulk Status Check
    - New: Batch Create, Batch Transition, Triage Backlog, Sprint Planning
 6. Issue Operations          (TRIM — one example per op, remove flag catalogs)
 7. Epics / Sprints / Projects (TRIM — one example each, refer to commands.md)

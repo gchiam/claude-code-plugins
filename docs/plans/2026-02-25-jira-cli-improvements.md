@@ -13,33 +13,33 @@
 ### Task 1: Trim Reading Output and Move Defensive Patterns into Foundations
 
 **Files:**
-- Modify: `jira-cli/skills/jira-cli/SKILL.md:84-133` (trim Reading Output)
-- Modify: `jira-cli/skills/jira-cli/SKILL.md:384-424` (move Defensive Patterns)
+- Modify: `jira-cli/skills/jira-cli/SKILL.md` (trim `## Reading Output`, move `## Defensive Patterns`)
 
 **Step 1: Replace the Reading Output section**
 
-Replace lines 84-97 (from `## Reading Output` through the line ending with
-`(like description, comments, custom fields).`) with this trimmed version that
-removes the flag explanations (already in commands.md) and keeps only a brief
-summary:
+Replace the `## Reading Output` section (from `## Reading Output` through the
+line ending with `(like description, comments, custom fields).`) with this
+trimmed version that removes the flag explanations (already in commands.md) and
+keeps only a brief summary:
 
 ````markdown
 ## Reading Output
 
-Plain output (`--plain`) is tab-delimited. Use `--no-headers` when parsing
+Plain output (`--plain`) is tab-delimited with default columns:
+`TYPE`, `KEY`, `SUMMARY`, `STATUS`, `ASSIGNEE`. Use `--no-headers` when parsing
 programmatically. Use `--raw` for full JSON when you need fields not available
 in plain mode. See `references/commands.md` for all output flags (`--columns`,
 `--csv`, `--delimiter`, etc.).
 ````
 
 Keep the existing `### Parsing Plain Output`, `### Parsing JSON Output`, and
-`### Special Characters` subsections (lines 99-133) unchanged.
+`### Special Characters` subsections unchanged.
 
 **Step 2: Move Defensive Patterns up**
 
-Cut the entire `## Defensive Patterns` section (lines 384-424, from
-`## Defensive Patterns` through `Do not retry 4xx errors (except 429) — they
-indicate a permanent problem.`) and paste it immediately after the
+Cut the entire `## Defensive Patterns` section (from `## Defensive Patterns`
+through `Do not retry 4xx errors (except 429) — they indicate a permanent
+problem.`) and paste it immediately after the
 `### Special Characters` subsection, before `## Issue Operations`.
 
 Keep the Defensive Patterns content exactly as-is.
@@ -90,20 +90,26 @@ Sprint commands need numeric IDs. Extract from the sprint list:
 ```bash
 # Get active sprint ID
 SPRINT_ID=$(jira sprint list --state active --table --plain --no-headers | awk -F'\t' '{print $1}' | head -1)
+if [ -z "$SPRINT_ID" ]; then
+  echo "No active sprint found" >&2
+  exit 1
+fi
 ```
 
 ### Status Names
 
 Status names are instance-specific and case-sensitive. When `jira issue move`
-fails with "No transition found", discover valid transitions:
+fails with "No transition found", check the current status first:
 
 ```bash
 # Get current status
 jira issue view ISSUE-123 --raw | jq -r '.fields.status.name'
-
-# List valid transitions from current state
-jira issue view ISSUE-123 --raw | jq -r '.transitions[]?.name'
 ```
+
+Note: The standard `--raw` response may not include a `transitions` array
+(it requires `?expand=transitions` in the Jira REST API). If you cannot
+discover transitions programmatically, try common status names like "To Do",
+"In Progress", "In Review", "Done", or check your Jira board for the workflow.
 
 ### Custom Field IDs
 
@@ -120,9 +126,13 @@ jira issue view ISSUE-123 --raw | jq -r '.fields.customfield_10001'
 ### Issue Types
 
 Issue types vary by project. Common safe defaults: `Task`, `Bug`, `Story`.
-To discover available types, inspect an existing issue:
+To discover types used in a project, sample from existing issues:
 
 ```bash
+# List distinct issue types used in a project
+jira issue list -pPROJ --plain --columns type --no-headers | sort -u
+
+# Check a specific issue's type
 jira issue view ISSUE-123 --raw | jq -r '.fields.issuetype.name'
 ```
 ````
@@ -158,7 +168,7 @@ Replace:
 
 With:
 ```
---no-input --raw | jq -r '.key')
+--no-input --raw 2>/dev/null | jq -r '.key')
 ```
 
 **Step 2: Add four new workflows**
@@ -175,14 +185,15 @@ Create multiple related issues with rate-limit-safe spacing:
 ```bash
 KEYS=()
 for SUMMARY in "Set up CI pipeline" "Add unit tests" "Write API docs"; do
-  KEY=$(jira issue create -tTask -s"$SUMMARY" -PEPIC-42 \
+  KEY=$(jira issue create -tTask -s"$SUMMARY" -pPROJ \
     --no-input --raw | jq -r '.key')
   KEYS+=("$KEY")
   echo "Created $KEY"
   sleep 1
 done
 
-# Add all created issues to a sprint
+# Optionally add to an epic: jira epic add EPIC-42 "${KEYS[@]}"
+# Add all created issues to a sprint (see Discovery Patterns for $SPRINT_ID)
 jira sprint add "$SPRINT_ID" "${KEYS[@]}"
 ```
 
@@ -193,10 +204,13 @@ which issues failed:
 
 ```bash
 FAILED=()
-KEYS=$(jira issue list -q "project = PROJ AND status = 'Code Review'" \
+KEYS=()
+while IFS= read -r KEY; do
+  KEYS+=("$KEY")
+done < <(jira issue list -q "project = PROJ AND status = 'Code Review'" \
   --plain --no-headers | awk -F'\t' '{print $2}')
 
-for KEY in $KEYS; do
+for KEY in "${KEYS[@]}"; do
   if ! jira issue move "$KEY" "Done" --comment "Sprint cleanup" -RFixed 2>/dev/null; then
     FAILED+=("$KEY")
   fi
@@ -210,7 +224,8 @@ fi
 
 ### Triage Backlog
 
-Query unassigned issues and assign/prioritize them:
+Query unassigned issues and assign/prioritize them. Uses `$ME` from the
+"Start of Day" workflow (`ME=$(jira me)`):
 
 ```bash
 # List unassigned issues in priority order
@@ -439,8 +454,10 @@ version:
 and project-prefixed (e.g., PROJ-123, not just 123).
 
 **"No transition found"**: The status name doesn't match available transitions.
-Use the discovery pattern:
-`jira issue view ISSUE-123 --raw | jq -r '.transitions[]?.name'`
+Check the current status with:
+`jira issue view ISSUE-123 --raw | jq -r '.fields.status.name'`
+Then try common status names ("To Do", "In Progress", "In Review", "Done") or
+check your Jira board for the workflow.
 
 **Command hangs**: You likely forgot `--no-input` on a create/edit command, or
 `--plain` on a list command. Kill the process and retry with the correct flags.
@@ -458,8 +475,19 @@ Defensive Patterns section for spacing and retry guidance.
 and report both lists. Retry only the failures:
 
 ```bash
+SUCCEEDED=()
+FAILED=()
+for KEY in "${ALL_KEYS[@]}"; do
+  if jira issue move "$KEY" "Done" -RFixed 2>/dev/null; then
+    SUCCEEDED+=("$KEY")
+  else
+    FAILED+=("$KEY")
+  fi
+  sleep 1
+done
+
+echo "Succeeded: ${SUCCEEDED[*]}"
 if [ ${#FAILED[@]} -gt 0 ]; then
-  echo "Succeeded: ${SUCCEEDED[*]}"
   echo "Failed: ${FAILED[*]}"
   # Retry only failures
   for KEY in "${FAILED[@]}"; do
@@ -493,7 +521,7 @@ Expected: All validations passed
 
 ```bash
 git add jira-cli/skills/jira-cli/SKILL.md
-git commit -m "feat(jira-cli): expand error handling and update footer"
+git commit -m "docs(jira-cli): expand error handling and update footer"
 ```
 
 ---
@@ -526,13 +554,23 @@ Read through the final SKILL.md and verify these sections exist in order:
 12. Error Handling (expanded — 7 error types)
 13. Full Command Reference (updated footer)
 
-**Step 3: Verify no duplicate content**
+**Step 3: Verify internal cross-references**
+
+Confirm that references between sections are consistent:
+- Error Handling mentions "Defensive Patterns section" → verify it exists
+- Error Handling mentions "discovery pattern" for custom fields → verify Discovery Patterns has it
+- Footer references `references/commands.md` → verify file exists
+- Sections that mention `$ME` → verify "Start of Day" workflow defines it
+
+**Step 4: Verify no duplicate content**
 
 Confirm that flag documentation (column lists, output flag explanations, flag
 catalogs per command) has been removed from SKILL.md and exists only in
 `references/commands.md`.
 
-**Step 4: Check line count**
+**Step 5: Check line count**
 
 Run: `wc -l jira-cli/skills/jira-cli/SKILL.md`
-Expected: Roughly 300-350 lines (down from 448, despite new content)
+Expected: Roughly 450-500 lines (up slightly from 448 due to new Discovery
+Patterns and batch workflows, offset by trimming in Issue Operations and
+Epics/Sprints sections)
