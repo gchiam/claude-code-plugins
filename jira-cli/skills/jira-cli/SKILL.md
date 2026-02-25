@@ -353,156 +353,86 @@ jira sprint add "$SPRINT_ID" PROJ-101 PROJ-102 PROJ-103
 
 ## Issue Operations
 
-### Listing and Searching
+One example per operation. See `references/commands.md` for all flags.
+
+### List and Search
 
 ```bash
 # My open issues
-jira issue list -a"USER_EMAIL" --plain
+jira issue list -a"$ME" --plain
 
-# Filter by status and type
-jira issue list -s"In Progress" -tBug --plain
+# Filter by status, type, and project
+jira issue list -pPROJ -s"In Progress" -tBug --plain
 
-# Created this week, high priority
-jira issue list --created week -yHigh --plain
-
-# Search by text in summary/description
+# Search by text
 jira issue list "login crash" --plain
-
-# Paginate large results (start:limit, max 100)
-jira issue list -a"USER_EMAIL" --paginate 0:50 --plain
-
-# Specific project
-jira issue list -pPROJ -s"To Do" --plain
 ```
 
-### Viewing
+### View
 
 ```bash
-# View issue details
-jira issue view ISSUE-123 --plain
-
-# View with recent comments
+# Plain text view with comments
 jira issue view ISSUE-123 --plain --comments 5
 
-# Get full JSON for detailed inspection
+# Full JSON for detailed inspection
 jira issue view ISSUE-123 --raw
 ```
 
-### Creating
-
-Provide at minimum: type (`-t`), summary (`-s`). Add `--no-input` to skip
-the interactive editor.
+### Create
 
 ```bash
-# Create a bug
-jira issue create -tBug -s"Login fails on mobile" -yHigh -b"Steps to reproduce..." --no-input
+# Create a bug (minimum: -t, -s, --no-input)
+jira issue create -tBug -s"Login fails on mobile" -yHigh \
+  -b"Steps to reproduce..." --no-input
 
-# Create a story under an epic
-jira issue create -tStory -s"Add password reset flow" -PEPIC-42 --no-input
-
-# Create and assign to self
-jira issue create -tTask -s"Update dependencies" -a"USER_EMAIL" --no-input
-
-# Create with labels and components
-jira issue create -tBug -s"Memory leak in worker" -lbug -l"p0" -Cbackend --no-input
-
-# Create with custom fields (e.g., story points)
-jira issue create -tStory -s"User profile page" --custom story-points=5 --no-input
-
-# Get the created issue key as JSON
-jira issue create -tTask -s"New task" --no-input --raw
+# Capture the created issue key
+KEY=$(jira issue create -tTask -s"New task" --no-input --raw | jq -r '.key')
 ```
 
-### Editing
+### Edit
 
 ```bash
-# Update summary
-jira issue edit ISSUE-123 -s"Updated title" --no-input
+# Update fields
+jira issue edit ISSUE-123 -s"Updated title" -yHigh --no-input
 
-# Update description (use pipe for multi-line)
+# Pipe multi-line description
 echo "New detailed description" | jira issue edit ISSUE-123 --no-input
-
-# Change priority and add labels
-jira issue edit ISSUE-123 -yHigh -lurgent --no-input
-
-# Remove a label (prefix with -)
-jira issue edit ISSUE-123 --label -old-label --no-input
-
-# Set custom fields
-jira issue edit ISSUE-123 --custom story-points=8 --no-input
 ```
 
-### Transitioning (Moving)
-
-The status name must match exactly what Jira expects (case-sensitive). Common
-statuses: "To Do", "In Progress", "In Review", "Done". Your Jira instance may
-use different names.
+### Transition (Move)
 
 ```bash
-# Move to In Progress
+# Move to a status (name must match exactly, case-sensitive)
 jira issue move ISSUE-123 "In Progress"
 
 # Complete with comment and resolution
 jira issue move ISSUE-123 "Done" --comment "Completed" -RFixed
 ```
 
-If the move fails, the status name might not match. Use `jira issue view
-ISSUE-123 --raw` and look at the `transitions` field to see valid target
-states.
-
-### Assigning
+### Assign
 
 ```bash
-# Assign to self
-jira issue assign ISSUE-123 USER_EMAIL
-
-# Assign to someone else
-jira issue assign ISSUE-123 other.person@example.com
-
-# Unassign
-jira issue assign ISSUE-123 x
+jira issue assign ISSUE-123 "$ME"        # Assign to self
+jira issue assign ISSUE-123 x            # Unassign
 ```
 
-### Comments
+### Comment
 
 ```bash
-# Add a comment
-jira issue comment add ISSUE-123 "Investigation complete, root cause is X" --no-input
-
-# Multi-line comment
-jira issue comment add ISSUE-123 $'First line\n\nSecond paragraph' --no-input
-
-# Pipe longer content
-echo "Detailed analysis..." | jira issue comment add ISSUE-123 --template - --no-input
+jira issue comment add ISSUE-123 "Root cause identified" --no-input
 ```
 
-### Work Logging
+### Work Log
 
 ```bash
-# Log time
-jira issue worklog add ISSUE-123 "2h 30m" --no-input
-
-# Log with comment
-jira issue worklog add ISSUE-123 "4h" --comment "Implemented the feature" --no-input
-
-# Log with specific start time
-jira issue worklog add ISSUE-123 "3h" --started "2024-06-15 09:00:00" --no-input
+jira issue worklog add ISSUE-123 "2h 30m" --comment "Implementation" --no-input
 ```
 
-### Linking and Cloning
+### Link and Clone
 
 ```bash
-# Link issues (type: Blocks, Duplicates, Relates, etc.)
 jira issue link ISSUE-123 ISSUE-456 Blocks
-
-# Clone an issue with modifications
-jira issue clone ISSUE-123 -s"Cloned: New summary" -a"USER_EMAIL"
-
-# Add remote web link
-jira issue link remote ISSUE-123 "https://example.com" "Link title"
-
-# Unlink
-jira issue unlink ISSUE-123 ISSUE-456
+jira issue clone ISSUE-123 -s"Cloned: New summary"
 ```
 
 ## Epics
