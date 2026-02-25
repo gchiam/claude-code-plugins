@@ -9,12 +9,12 @@ description: >-
 
 # Multi Review
 
-> **STOP. Your first action is Phase 0 below. Do NOT launch any agents
-> until you have printed the Phase 0 discovery report.**
+> **STOP. Your first action is Phase 1 below. Do NOT launch any agents
+> until you have printed the Phase 1 discovery report.**
 
 ## Rules
 
-1. **Phase 0 first.** Complete Phase 0 and print the discovery report
+1. **Phase 1 first.** Complete Phase 1 and print the discovery report
    before doing anything else. If you skip this, you will launch the
    wrong agents.
 2. **Wait for all agents.** Use `TaskOutput` with `block: true` on
@@ -22,7 +22,7 @@ description: >-
 
 ---
 
-## Phase 0: Discover Available Review Agents
+## Phase 1: Discover Available Review Agents
 
 Discover what review agent types are available by inspecting the Task
 tool's `subagent_type` list in the system prompt.
@@ -43,7 +43,7 @@ description for agent types whose name or description mentions "review",
 
 **Step 3: Print the discovery report.**
 
-Phase 0 is **not complete** until you print the report below. You MUST
+Phase 1 is **not complete** until you print the report below. You MUST
 output this exact format — do not paraphrase, summarize, or skip it.
 Replace the placeholders with actual values:
 
@@ -51,7 +51,7 @@ Replace the placeholders with actual values:
 Multi Review - PR #<NUMBER>
 ════════════════════════════════════════
 
-[✓] Phase 0: Discovered <N> review agents (max-reviewers: <MAX>):
+[✓] Phase 1: Discovered <N> review agents (max-reviewers: <MAX>):
     ├── [selected] <agent-type>
     ├── [selected] <agent-type>
     ├── [selected] <agent-type>
@@ -63,32 +63,32 @@ Multi Review - PR #<NUMBER>
 - If zero review agents are found, **STOP** and inform the user to
   install review plugins.
 
-**Do NOT proceed to Phase 1 until this report is printed.**
+**Do NOT proceed to Phase 2 until this report is printed.**
 
-## Phase 1: Parallel Review Execution
+## Phase 2: Parallel Review Execution
 
 ### Pre-launch checklist
 
 Before launching any agents, verify ALL of the following:
 
-- [ ] Phase 0 discovery report has been printed above
-- [ ] You are using ONLY agent types discovered in Phase 0
+- [ ] Phase 1 discovery report has been printed above
+- [ ] You are using ONLY agent types discovered in Phase 1
 
 ### Launch agents
 
-Launch **one agent per selected review agent type** from Phase 0 in a
+Launch **one agent per selected review agent type** from Phase 1 in a
 single Task tool message:
 
 ```jsonc
 {
-  "subagent_type": "[AGENT_TYPE]",       // from Phase 0 discovery
+  "subagent_type": "[AGENT_TYPE]",       // from Phase 1 discovery
   "description": "[AGENT_TYPE] review",
   "prompt": "Review [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
   "run_in_background": true
 }
 ```
 
-`[AGENT_TYPE]` = the discovered agent type from Phase 0 (e.g., `coderabbit:code-reviewer`).
+`[AGENT_TYPE]` = the discovered agent type from Phase 1 (e.g., `coderabbit:code-reviewer`).
 `[TARGET]` = the PR number, branch name, or file list being reviewed.
 
 For each agent, the prompt should include:
@@ -108,7 +108,7 @@ Configuration:
 - Files: [file list if specified]
 ```
 
-### Phase 1 Output Files
+### Phase 2 Output Files
 
 **IMPORTANT:** Use `TaskOutput` with `block: true` on ALL agent IDs
 before proceeding. Do NOT write output files until all agents have returned.
@@ -140,7 +140,7 @@ Include header in each file:
 ---
 ```
 
-## Phase 2: Parallel Validation
+## Phase 3: Parallel Validation
 
 Launch **one validation agent per review output** to evaluate findings:
 
@@ -169,7 +169,7 @@ Output: Validated findings with confidence scores and reasoning.
 
 - `validated-<short-name>.md` - Validated findings from each review
 
-## Phase 3: Aggregate Summary
+## Phase 4: Aggregate Summary
 
 After validation completes, generate a comprehensive summary.
 
@@ -239,15 +239,15 @@ Specify what to review using these options:
 | `--output-dir`      | Directory for review files   | `./.reviews/` |
 | `--confidence`      | Min confidence threshold     | `70`          |
 | `--max-reviewers`   | Max review agents to run     | `3`           |
-| `--skip-validation` | Skip Phase 2, use raw results| `false`       |
-| `--revalidate`      | Re-run Phase 2-3 on existing | `false`       |
+| `--skip-validation` | Skip Phase 3, use raw results| `false`       |
+| `--revalidate`      | Re-run Phase 3-4 on existing | `false`       |
 
 ### Error Handling
 
 | Scenario                      | Behavior                             |
 | ----------------------------- | ------------------------------------ |
-| One agent fails in Phase 1    | Continue with available, warn user   |
-| All agents fail in Phase 1    | Abort with error details             |
+| One agent fails in Phase 2    | Continue with available, warn user   |
+| All agents fail in Phase 2    | Abort with error details             |
 | Validation fails              | Use unvalidated results with warning |
 | Output directory not writable | Fallback to current directory        |
 | PR not found                  | Prompt for correct PR number         |
