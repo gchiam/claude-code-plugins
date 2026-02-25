@@ -1,11 +1,10 @@
 {
   "branches": ["main"],
-  "tagFormat": "${name}-v${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     ["@semantic-release/exec", {
-      "prepareCmd": "bash ${process.cwd()}/scripts/sync-plugin-version.sh"
+      "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version && bash ${process.cwd()}/scripts/sync-plugin-version.sh"
     }],
     ["@semantic-release/git", {
       "assets": [
