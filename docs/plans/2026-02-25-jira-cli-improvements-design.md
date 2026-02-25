@@ -1,61 +1,94 @@
-# jira-cli SKILL.md Improvements — Design
+# jira-cli SKILL.md Restructure — Design
 
 Date: 2026-02-25
 
 ## Goal
 
-Improve the jira-cli plugin's SKILL.md with three high-impact additions that
-address gaps in setup guidance, output parsing, and defensive patterns for
-batch operations.
+Restructure jira-cli SKILL.md to be a focused agent guide. Remove duplicate
+reference material (already in commands.md), reorganize sections for agent
+readability, and add missing patterns for discovery and batch operations.
 
 ## Approach
 
-Inline additions to the existing SKILL.md (Approach A). No structural
-reorganization. Adds ~70 lines total.
+Restructure (Approach A). SKILL.md becomes a workflow/patterns guide;
+commands.md remains the flag reference. Net result: slightly shorter document
+with better coverage.
 
-## Changes
+## New Structure
 
-### 1. Prerequisites/Setup Section (~14 lines)
+```
+1. Prerequisites           (keep as-is)
+2. Critical Rules          (keep as-is)
+3. Foundations
+   a. Choosing Flags vs JQL  (keep)
+   b. Reading Output         (trim — keep parsing examples, remove flag lists)
+   c. Defensive Patterns     (MOVE UP from end of document)
+4. Discovery Patterns        (NEW)
+   - Project keys, sprint IDs, status names, custom field IDs, issue types
+5. Common Workflows          (EXPAND from 4 to 8)
+   - Existing: Start of Day, Pick Up Issue, Complete Issue, Create Bug
+   - New: Batch Create, Batch Transition, Triage Backlog, Sprint Planning
+6. Issue Operations          (TRIM — one example per op, remove flag catalogs)
+7. Epics / Sprints / Projects (TRIM — one example each, refer to commands.md)
+8. Error Handling            (expand — add custom field errors, partial batch)
+9. Footer: "See references/commands.md for full flag documentation"
+```
 
-**Placement**: After intro paragraph (line 22), before "Critical Rules".
+## Changes in Detail
 
-Adds a quick checklist:
-1. Install via brew (with link to full install docs)
-2. Run `jira init`
-3. Export `JIRA_API_TOKEN`
-4. Verify with `jira serverinfo --plain`
+### 1. Move Defensive Patterns Up
 
-Includes troubleshooting for failed verification (token, config path, network).
+Move pagination, rate limiting, and retry patterns from end of document to
+section 3c (Foundations). Agents need these patterns *before* attempting
+operations, not as an afterthought.
 
-### 2. Expanded Output Parsing (~25 lines)
+### 2. Add Discovery Patterns (New Section)
 
-**Placement**: Appended to existing "Reading Output" section (after line 82).
+Teaches the agent how to find IDs and names before running commands:
 
-Three subsections:
-- **Parsing Plain Output** — `awk -F'\t'` patterns for extracting columns,
-  filtering rows
-- **Parsing JSON Output** — `jq` patterns for description, custom fields,
-  list-to-array
-- **Special Characters** — guidance to prefer `--raw` for freeform text fields
+- **Project keys** — `jira project list --plain` with awk extraction
+- **Sprint IDs** — extract from `jira sprint list --state active --table --plain`
+- **Status names** — `jira issue view --raw | jq` for valid transitions
+- **Custom field IDs** — `--raw | jq '.fields | keys[]'` discovery
+- **Issue types** — note types vary by project, suggest safe defaults
 
-### 3. Defensive Patterns Section (~30 lines)
+### 3. Expand Common Workflows (4 New)
 
-**Placement**: New section before "Error Handling" (before line 333).
+- **Batch Create Issues** — loop with sleep 1 for rate limiting, capture keys
+  with `--raw | jq -r '.key'`
+- **Batch Transition Issues** — pipe keys from list query through loop, continue
+  on failure, report failures
+- **Triage Backlog** — query unassigned issues, assign/prioritize/label
+- **Sprint Planning** — find sprint ID, query candidates, add to sprint
 
-Three subsections:
-- **Pagination** — explicit `--paginate` with stop condition
-- **Rate Limiting** — 429 handling, spacing sequential commands, preferring
-  batch flags
-- **Retry on Transient Errors** — retry loop for timeouts/5xx, no retry on 4xx
+### 4. Trim Duplicate Content
+
+Remove ~80 lines of flag documentation that repeats commands.md:
+
+- **Reading Output** — remove column list and flag explanations, keep only
+  awk/jq parsing examples
+- **Issue Operations** — keep one example per operation, remove flag-by-flag
+  demonstrations
+- **Epics/Sprints/Projects** — trim to one example each, add commands.md
+  reference
+
+### 5. Expand Error Handling
+
+Add two error types:
+
+- **Custom field errors** — link to discovery pattern
+- **Partial batch failure** — report successes and failures, retry only failures
 
 ## Decisions Made
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Setup depth | Quick checklist | Users can follow jira-cli docs for platform details |
-| Batch focus | Defensive patterns only | Teaches good API citizenship without complex orchestration |
-| Structure | Inline in SKILL.md | Claude always sees the guidance; no extra file reads |
+| Defensive patterns placement | Section 3 (Foundations) | Agents need these before operations |
+| Duplication strategy | Remove from SKILL.md | commands.md is the single source for flags |
+| Batch patterns | Loop with sleep + error handling | Teaches rate-limit-safe operations |
+| Discovery section | Separate section 4 | Cross-cutting concern, not tied to one command |
+| Issue ops examples | One per operation | Patterns over reference; commands.md has full details |
 
 ## Files Modified
 
-- `jira-cli/skills/jira-cli/SKILL.md` — three additions as described above
+- `jira-cli/skills/jira-cli/SKILL.md` — restructure as described above
