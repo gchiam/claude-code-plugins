@@ -69,11 +69,23 @@ Multi Review - PR #<NUMBER>
 If `--no-input` is set, skip this step — proceed directly to Phase 2
 with the auto-selected agents from Step 2.
 
-Otherwise, use `AskUserQuestion` with `multiSelect: true` to let the
-user pick which agents to run. List ALL discovered agents as options
-(all unchecked by default). Append "(Recommended)" to the label of
-agents marked `[selected]` in the report so the user knows which ones
-were auto-selected.
+Otherwise, use a **two-step confirmation flow**:
+
+**Step 4a: Ask whether to accept or customize.**
+
+Use `AskUserQuestion` with `multiSelect: false` (radio) to present:
+- **"Accept recommended"** — proceed directly to Phase 2 with the
+  `[selected]` agents from Step 2. Do NOT show the agent selection
+  checkbox.
+- **"Customize selection"** — continue to Step 4b.
+
+**Step 4b: Agent selection (only if "Customize selection" chosen).**
+
+Use `AskUserQuestion` with `multiSelect: true` to let the user pick
+which agents to run. List ALL discovered agents as options (all
+unchecked by default). Append "(Recommended)" to the label of agents
+marked `[selected]` in the report so the user knows which ones were
+auto-selected.
 
 Set `max-reviewers` to the number of agents the user selected.
 
