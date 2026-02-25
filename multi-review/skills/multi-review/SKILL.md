@@ -63,7 +63,20 @@ Multi Review - PR #<NUMBER>
 - If zero review agents are found, **STOP** and inform the user to
   install review plugins.
 
-**Do NOT proceed to Phase 2 until this report is printed.**
+**Step 4: Get user confirmation.**
+
+After printing the discovery report, ask the user to confirm or amend
+the selection before proceeding. Present options:
+
+1. **Proceed** — launch the selected agents as shown
+2. **Add an agent** — include a skipped agent or specify one manually
+3. **Remove an agent** — drop a selected agent from this run
+4. **Change max-reviewers** — adjust the cap and re-select
+
+If the user amends the selection, reprint the updated discovery report
+with the changes applied, then ask for confirmation again.
+
+**Do NOT proceed to Phase 2 until the user confirms the selection.**
 
 ## Phase 2: Parallel Review Execution
 
@@ -71,8 +84,8 @@ Multi Review - PR #<NUMBER>
 
 Before launching any agents, verify ALL of the following:
 
-- [ ] Phase 1 discovery report has been printed above
-- [ ] You are using ONLY agent types discovered in Phase 1
+- [ ] User has confirmed the Phase 1 agent selection
+- [ ] You are using ONLY the confirmed agent types from Phase 1
 
 ### Launch agents
 
