@@ -167,6 +167,114 @@ done
 
 Do not retry 4xx errors (except 429) — they indicate a permanent problem.
 
+## Discovery Patterns
+
+Before running commands, you often need to discover IDs and names. Use these
+patterns to find what you need.
+
+### Project Keys
+
+```bash
+# List available projects with keys
+jira project list --plain --no-headers | awk -F'\t' '{print $1, $2}'
+```
+
+If the user says "my project" without a key, list projects and ask which one.
+
+### Sprint IDs
+
+Sprint commands need numeric IDs. Extract from the sprint list:
+
+```bash
+# Get active sprint ID
+SPRINT_ID=$(jira sprint list --state active --table --plain --no-headers | awk -F'\t' '{print $1}' | head -1)
+if [ -z "$SPRINT_ID" ]; then
+  echo "No active sprint found" >&2
+  exit 1
+fi
+```
+
+### Status Names
+
+Status names are instance-specific and case-sensitive. When `jira issue move`
+fails with "No transition found", check the current status first:
+
+```bash
+# Get current status
+jira issue view ISSUE-123 --raw | jq -r '.fields.status.name'
+```
+
+Note: The standard `--raw` response may not include a `transitions` array
+(it requires `?expand=transitions` in the Jira REST API). If you cannot
+discover transitions programmatically, try common status names like "To Do",
+"In Progress", "In Review", "Done", or check your Jira board for the workflow.
+
+### Custom Field IDs
+
+Custom fields use IDs like `customfield_10001`. Discover them from any issue:
+
+```bash
+# List all custom field IDs on an issue
+jira issue view ISSUE-123 --raw | jq -r '.fields | keys[] | select(startswith("customfield"))'
+
+# Get a specific custom field value
+jira issue view ISSUE-123 --raw | jq -r '.fields.customfield_10001'
+```
+
+### Issue Types
+
+Issue types vary by project. Common safe defaults: `Task`, `Bug`, `Story`.
+To discover types used in a project, sample from existing issues:
+
+```bash
+# List distinct issue types used in a project
+jira issue list -pPROJ --plain --columns type --no-headers | sort -u
+
+# Check a specific issue's type
+jira issue view ISSUE-123 --raw | jq -r '.fields.issuetype.name'
+```
+
+## Common Workflows
+
+### Start of Day: What Am I Working On?
+
+```bash
+ME=$(jira me)
+jira sprint list --current --plain -a"$ME" --columns key,summary,status,priority
+```
+
+### Pick Up and Start an Issue
+
+```bash
+jira issue assign ISSUE-123 "$ME"
+jira issue move ISSUE-123 "In Progress"
+```
+
+### Complete an Issue
+
+```bash
+jira issue worklog add ISSUE-123 "4h" --comment "Implementation complete" --no-input
+jira issue move ISSUE-123 "Done" --comment "Merged in PR #456" -RFixed
+```
+
+### Create a Bug from a Code Finding
+
+```bash
+KEY=$(jira issue create -tBug -s"Memory leak in connection pool" \
+  -yHigh -lbug -Cbackend \
+  -b"Found during code review. Connection objects are not released when..." \
+  --no-input --raw 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['key'])")
+jira issue assign "$KEY" "$ME"
+jira issue move "$KEY" "In Progress"
+```
+
+### Bulk Status Check for a Team
+
+```bash
+jira issue list -q "project = PROJ AND sprint IN openSprints()" \
+  --plain --columns key,summary,status,assignee
+```
+
 ## Issue Operations
 
 ### Listing and Searching
@@ -373,47 +481,6 @@ jira release list --plain
 
 # Open project in browser
 jira open
-```
-
-## Common Workflows
-
-### Start of Day: What Am I Working On?
-
-```bash
-ME=$(jira me)
-jira sprint list --current --plain -a"$ME" --columns key,summary,status,priority
-```
-
-### Pick Up and Start an Issue
-
-```bash
-jira issue assign ISSUE-123 "$ME"
-jira issue move ISSUE-123 "In Progress"
-```
-
-### Complete an Issue
-
-```bash
-jira issue worklog add ISSUE-123 "4h" --comment "Implementation complete" --no-input
-jira issue move ISSUE-123 "Done" --comment "Merged in PR #456" -RFixed
-```
-
-### Create a Bug from a Code Finding
-
-```bash
-KEY=$(jira issue create -tBug -s"Memory leak in connection pool" \
-  -yHigh -lbug -Cbackend \
-  -b"Found during code review. Connection objects are not released when..." \
-  --no-input --raw 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['key'])")
-jira issue assign "$KEY" "$ME"
-jira issue move "$KEY" "In Progress"
-```
-
-### Bulk Status Check for a Team
-
-```bash
-jira issue list -q "project = PROJ AND sprint IN openSprints()" \
-  --plain --columns key,summary,status,assignee
 ```
 
 ## Error Handling
