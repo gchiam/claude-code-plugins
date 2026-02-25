@@ -36,8 +36,9 @@ description for agent types whose name or description mentions "review",
 - Exclude anything containing `multi-review` (this skill — avoids recursion).
 - If the same plugin appears with multiple agent types, pick the one
   most focused on code review.
-- Select up to `--max-reviewers` agents (default: 3). If more are
-  available, prefer diversity of perspective (general review, security
+- Select up to `--max-reviewers` agents (default: 3). If set to `all`,
+  select every discovered agent. If more agents are available than the
+  limit, prefer diversity of perspective (general review, security
   review, style/quality review). Report all discovered agents and
   indicate which were selected vs skipped.
 
@@ -65,9 +66,12 @@ Multi Review - PR #<NUMBER>
 
 **Step 4: Get user confirmation.**
 
-After printing the discovery report, use `AskUserQuestion` with
-`multiSelect: true` to let the user pick which agents to run. List ALL
-discovered agents as options. Append "(Recommended)" to the label of
+If `--no-input` is set, skip this step — proceed directly to Phase 2
+with the auto-selected agents from Step 2.
+
+Otherwise, use `AskUserQuestion` with `multiSelect: true` to let the
+user pick which agents to run. List ALL discovered agents as options
+(all unchecked by default). Append "(Recommended)" to the label of
 agents marked `[selected]` in the report so the user knows which ones
 were auto-selected.
 
@@ -76,7 +80,8 @@ Set `max-reviewers` to the number of agents the user selected.
 After the user submits, reprint the discovery report with the updated
 selection, then proceed to Phase 2.
 
-**Do NOT proceed to Phase 2 until the user confirms the selection.**
+**Do NOT proceed to Phase 2 until the user confirms the selection
+(unless `--no-input` is set).**
 
 ## Phase 2: Parallel Review Execution
 
@@ -84,8 +89,8 @@ selection, then proceed to Phase 2.
 
 Before launching any agents, verify ALL of the following:
 
-- [ ] User has confirmed the Phase 1 agent selection
-- [ ] You are using ONLY the confirmed agent types from Phase 1
+- [ ] User has confirmed the Phase 1 agent selection (or `--no-input` is set)
+- [ ] You are using ONLY the confirmed/auto-selected agent types from Phase 1
 
 ### Launch agents
 
@@ -251,7 +256,8 @@ Specify what to review using these options:
 | ------------------- | ---------------------------- | ------------- |
 | `--output-dir`      | Directory for review files   | `./.reviews/` |
 | `--confidence`      | Min confidence threshold     | `70`          |
-| `--max-reviewers`   | Max review agents to run     | `3`           |
+| `--max-reviewers`   | Max review agents (`all` for no limit) | `3`  |
+| `--no-input`        | Skip agent selection prompt   | `false`       |
 | `--skip-validation` | Skip Phase 3, use raw results| `false`       |
 | `--revalidate`      | Re-run Phase 3-4 on existing | `false`       |
 
