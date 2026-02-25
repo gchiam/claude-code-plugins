@@ -381,6 +381,48 @@ jira issue list -q "project = PROJ AND sprint IN openSprints()" \
   --plain --columns key,summary,status,assignee
 ```
 
+## Defensive Patterns
+
+### Pagination
+
+`jira issue list` returns at most 100 results by default. For larger result
+sets, paginate explicitly:
+
+```bash
+# First 50 results
+jira issue list -pPROJ --paginate 0:50 --plain
+
+# Next 50
+jira issue list -pPROJ --paginate 50:50 --plain
+```
+
+Stop paginating when the returned row count is less than the requested limit.
+
+### Rate Limiting
+
+Jira Cloud enforces API rate limits. When you receive a 429 response:
+
+1. **Do not retry immediately.** Wait at least 5 seconds before the next call.
+2. **Space sequential commands.** When running multiple commands in sequence
+   (e.g., creating several issues), add `sleep 1` between calls.
+3. **Prefer batch-capable flags** over loops — e.g., `jira epic add EPIC-1
+   ISSUE-1 ISSUE-2 ISSUE-3` instead of three separate `epic add` calls.
+
+### Retry on Transient Errors
+
+Network timeouts and 5xx errors are transient. Retry up to 2 times with
+increasing delay:
+
+```bash
+# Simple retry pattern
+for i in 1 2 3; do
+  jira issue view ISSUE-123 --plain && break
+  sleep "$((i * 2))"
+done
+```
+
+Do not retry 4xx errors (except 429) — they indicate a permanent problem.
+
 ## Error Handling
 
 **"Issue does not exist"**: Double-check the issue key. Keys are case-sensitive
