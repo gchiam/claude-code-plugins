@@ -471,7 +471,10 @@ jira open ISSUE-123           # Open in browser
 and project-prefixed (e.g., PROJ-123, not just 123).
 
 **"No transition found"**: The status name doesn't match available transitions.
-View the issue with `--raw` and check the `transitions` array for valid names.
+Check the current status with:
+`jira issue view ISSUE-123 --raw | jq -r '.fields.status.name'`
+Then try common status names ("To Do", "In Progress", "In Review", "Done") or
+check your Jira board for the workflow.
 
 **Command hangs**: You likely forgot `--no-input` on a create/edit command, or
 `--plain` on a list command. Kill the process and retry with the correct flags.
@@ -479,11 +482,41 @@ View the issue with `--raw` and check the `transitions` array for valid names.
 **"401 Unauthorized"**: The JIRA_API_TOKEN is missing or expired. Check with
 `echo $JIRA_API_TOKEN` and verify it's set.
 
-**Rate limiting**: Jira Cloud has API rate limits. If you get 429 errors, wait
-before retrying. Avoid running many commands in rapid succession.
+**Rate limiting (429)**: Wait at least 5 seconds before retrying. See the
+Defensive Patterns section for spacing and retry guidance.
+
+**Custom field errors**: The field ID doesn't match. Use the discovery pattern:
+`jira issue view ISSUE-123 --raw | jq -r '.fields | keys[] | select(startswith("customfield"))'`
+
+**Partial batch failure**: When a batch loop has mixed results, collect failures
+and report both lists. Retry only the failures:
+
+```bash
+SUCCEEDED=()
+FAILED=()
+for KEY in "${ALL_KEYS[@]}"; do
+  if jira issue move "$KEY" "Done" -RFixed 2>/dev/null; then
+    SUCCEEDED+=("$KEY")
+  else
+    FAILED+=("$KEY")
+  fi
+  sleep 1
+done
+
+echo "Succeeded: ${SUCCEEDED[*]}"
+if [ ${#FAILED[@]} -gt 0 ]; then
+  echo "Failed: ${FAILED[*]}"
+  # Retry only failures
+  for KEY in "${FAILED[@]}"; do
+    jira issue move "$KEY" "Done" -RFixed
+    sleep 1
+  done
+fi
+```
 
 ## Full Command Reference
 
-For complete flag documentation on every command, read
-`references/commands.md` in this skill's directory. Use it when you need
-uncommon flags or want to verify exact syntax for edge cases.
+For complete flag documentation on every command — including flags not shown
+above (`--fix-version`, `--original-estimate`, `--skip-notify`, `--internal`,
+`--delimiter`, `--csv`, and more) — read `references/commands.md` in this
+skill's directory.
