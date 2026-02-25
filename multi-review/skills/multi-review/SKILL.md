@@ -65,16 +65,15 @@ Multi Review - PR #<NUMBER>
 
 **Step 4: Get user confirmation.**
 
-After printing the discovery report, ask the user to confirm or amend
-the selection before proceeding. Present options:
+After printing the discovery report, use `AskUserQuestion` with
+`multiSelect: true` to let the user pick which agents to run. List ALL
+discovered agents as options — pre-select the ones marked `[selected]`
+in the report. The user can check or uncheck any agent.
 
-1. **Proceed** — launch the selected agents as shown
-2. **Add an agent** — include a skipped agent or specify one manually
-3. **Remove an agent** — drop a selected agent from this run
-4. **Change max-reviewers** — adjust the cap and re-select
+Set `max-reviewers` to the number of agents the user selected.
 
-If the user amends the selection, reprint the updated discovery report
-with the changes applied, then ask for confirmation again.
+After the user submits, reprint the discovery report with the updated
+selection, then proceed to Phase 2.
 
 **Do NOT proceed to Phase 2 until the user confirms the selection.**
 
