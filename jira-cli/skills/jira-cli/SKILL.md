@@ -438,55 +438,31 @@ jira issue clone ISSUE-123 -s"Cloned: New summary"
 ## Epics
 
 ```bash
-# List epics
-jira epic list --table --plain
-
-# List issues in an epic
-jira epic list EPIC-42 --plain
-
-# Create an epic
-jira epic create -n"Q1 Auth Improvements" -s"Epic summary" -b"Description" --no-input
-
-# Add issues to an epic
-jira epic add EPIC-42 ISSUE-123 ISSUE-456
-
-# Remove issues from an epic
-jira epic remove ISSUE-123
+jira epic list --table --plain               # List all epics
+jira epic list EPIC-42 --plain               # Issues in an epic
+jira epic create -n"Q1 Auth" -s"Summary" --no-input  # Create
+jira epic add EPIC-42 ISSUE-123 ISSUE-456    # Add issues to epic
 ```
+
+See `references/commands.md` for `epic remove` and all epic flags.
 
 ## Sprints
 
 ```bash
-# List sprints (active and closed)
-jira sprint list --table --plain
-
-# List only active sprints
-jira sprint list --state active --table --plain
-
-# My issues in current sprint
-jira sprint list --current --plain -a"USER_EMAIL"
-
-# Previous sprint issues
-jira sprint list --prev --plain
-
-# Add issues to a sprint (need sprint ID from sprint list)
-jira sprint add SPRINT_ID ISSUE-123 ISSUE-456
+jira sprint list --state active --table --plain   # Active sprints
+jira sprint list --current --plain -a"$ME"        # My current sprint issues
+jira sprint add SPRINT_ID ISSUE-123 ISSUE-456     # Add issues to sprint
 ```
+
+See `references/commands.md` for `sprint close`, `--prev`, `--next`, and all
+sprint flags.
 
 ## Projects and Boards
 
 ```bash
-# List all projects
-jira project list --plain
-
-# List boards
-jira board list --plain
-
-# List releases
-jira release list --plain
-
-# Open project in browser
-jira open
+jira project list --plain     # List projects
+jira board list --plain       # List boards
+jira open ISSUE-123           # Open in browser
 ```
 
 ## Error Handling
