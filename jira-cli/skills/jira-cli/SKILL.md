@@ -96,6 +96,42 @@ Use `--no-headers` when piping or parsing output programmatically.
 Use `--raw` to get full JSON when you need fields not available in plain mode
 (like description, comments, custom fields).
 
+### Parsing Plain Output
+
+Plain output is tab-delimited. Extract specific fields with `awk`:
+
+```bash
+# Extract just issue keys (column 2)
+jira issue list -a"$ME" --plain --no-headers | awk -F'\t' '{print $2}'
+
+# Extract key and status (columns 2 and 4)
+jira issue list --plain --no-headers | awk -F'\t' '{print $2, $4}'
+
+# Filter rows by status
+jira issue list --plain --no-headers | awk -F'\t' '$4 == "In Progress"'
+```
+
+### Parsing JSON Output
+
+Use `--raw` with `jq` for structured data:
+
+```bash
+# Get issue description
+jira issue view ISSUE-123 --raw | jq -r '.fields.description'
+
+# Extract custom field value
+jira issue view ISSUE-123 --raw | jq -r '.fields.customfield_10001'
+
+# Get all issue keys from a list as JSON array
+jira issue list -a"$ME" --raw | jq '[.[].key]'
+```
+
+### Special Characters
+
+Summaries and descriptions may contain tabs, quotes, or newlines. When using
+plain output for programmatic processing, prefer `--raw` (JSON) for fields that
+may contain freeform text.
+
 ## Issue Operations
 
 ### Listing and Searching
