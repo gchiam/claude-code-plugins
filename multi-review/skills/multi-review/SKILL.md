@@ -41,21 +41,29 @@ description for agent types whose name or description mentions "review",
   review, style/quality review). Report all discovered agents and
   indicate which were selected vs skipped.
 
-**Step 3: Report.**
+**Step 3: Print the discovery report.**
+
+Phase 0 is **not complete** until you print the report below. You MUST
+output this exact format — do not paraphrase, summarize, or skip it.
+Replace the placeholders with actual values:
 
 ```text
-Multi Review - PR #123
+Multi Review - PR #<NUMBER>
 ════════════════════════════════════════
 
-[✓] Phase 0: Discovered N review agents (max-reviewers: 3):
-    ├── [selected] coderabbit:code-reviewer
-    ├── [selected] pr-review-toolkit:code-reviewer
-    ├── [selected] superpowers:code-reviewer
-    └── [skipped]  feature-dev:code-reviewer    # only shown when cap reached
+[✓] Phase 0: Discovered <N> review agents (max-reviewers: <MAX>):
+    ├── [selected] <agent-type>
+    ├── [selected] <agent-type>
+    ├── [selected] <agent-type>
+    └── [skipped]  <agent-type>       # include for every agent beyond max
 ```
 
-If zero review agents are found, **STOP** and inform the user to install
-review plugins.
+- One line per discovered agent, marked `[selected]` or `[skipped]`.
+- Use `├──` for all lines except the last, which uses `└──`.
+- If zero review agents are found, **STOP** and inform the user to
+  install review plugins.
+
+**Do NOT proceed to Phase 1 until this report is printed.**
 
 ## Phase 1: Parallel Review Execution
 
