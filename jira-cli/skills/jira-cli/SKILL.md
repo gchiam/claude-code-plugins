@@ -21,6 +21,21 @@ Use `jira-cli` to interact with Jira from the terminal. This skill teaches you
 how to pick the right commands, avoid interactive prompts that will hang, and
 parse output reliably.
 
+## Prerequisites
+
+Before using jira-cli commands, verify your setup:
+
+1. **Install jira-cli**: `brew install ankitpokhrel/jira-cli/jira-cli` (or see
+   [install docs](https://github.com/ankitpokhrel/jira-cli#installation))
+2. **Initialize**: Run `jira init` and follow prompts (server URL, auth type, project)
+3. **Set API token**: Export `JIRA_API_TOKEN` in your shell profile
+4. **Verify**: Run `jira serverinfo --plain` — should print your Jira server version
+
+If `jira serverinfo` fails, check:
+- Token is set: `echo $JIRA_API_TOKEN`
+- Config exists: `cat ~/.config/.jira/.config.yml`
+- Network access to your Jira instance
+
 ## Critical Rules
 
 These rules prevent common failures when running jira-cli in a non-interactive
