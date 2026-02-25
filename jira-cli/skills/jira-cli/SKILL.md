@@ -83,18 +83,11 @@ Common JQL patterns:
 
 ## Reading Output
 
-When using `--plain`, the output is tab-delimited with these default columns:
-`TYPE`, `KEY`, `SUMMARY`, `STATUS`, `ASSIGNEE`
-
-Control columns explicitly when you need specific fields:
-```bash
-jira issue list --plain --columns key,summary,status,priority,assignee
-```
-
-Use `--no-headers` when piping or parsing output programmatically.
-
-Use `--raw` to get full JSON when you need fields not available in plain mode
-(like description, comments, custom fields).
+Plain output (`--plain`) is tab-delimited with default columns:
+`TYPE`, `KEY`, `SUMMARY`, `STATUS`, `ASSIGNEE`. Use `--no-headers` when parsing
+programmatically. Use `--raw` for full JSON when you need fields not available
+in plain mode. See `references/commands.md` for all output flags (`--columns`,
+`--csv`, `--delimiter`, etc.).
 
 ### Parsing Plain Output
 
@@ -131,6 +124,48 @@ jira issue list -a"$ME" --raw | jq '[.[].key]'
 Summaries and descriptions may contain tabs, quotes, or newlines. When using
 plain output for programmatic processing, prefer `--raw` (JSON) for fields that
 may contain freeform text.
+
+## Defensive Patterns
+
+### Pagination
+
+`jira issue list` returns at most 100 results by default. For larger result
+sets, paginate explicitly:
+
+```bash
+# First 50 results
+jira issue list -pPROJ --paginate 0:50 --plain
+
+# Next 50
+jira issue list -pPROJ --paginate 50:50 --plain
+```
+
+Stop paginating when the returned row count is less than the requested limit.
+
+### Rate Limiting
+
+Jira Cloud enforces API rate limits. When you receive a 429 response:
+
+1. **Do not retry immediately.** Wait at least 5 seconds before the next call.
+2. **Space sequential commands.** When running multiple commands in sequence
+   (e.g., creating several issues), add `sleep 1` between calls.
+3. **Prefer batch-capable flags** over loops — e.g., `jira epic add EPIC-1
+   ISSUE-1 ISSUE-2 ISSUE-3` instead of three separate `epic add` calls.
+
+### Retry on Transient Errors
+
+Network timeouts and 5xx errors are transient. Retry up to 2 times with
+increasing delay:
+
+```bash
+# Simple retry pattern
+for i in 1 2 3; do
+  jira issue view ISSUE-123 --plain && break
+  sleep "$((i * 2))"
+done
+```
+
+Do not retry 4xx errors (except 429) — they indicate a permanent problem.
 
 ## Issue Operations
 
@@ -380,48 +415,6 @@ jira issue move "$KEY" "In Progress"
 jira issue list -q "project = PROJ AND sprint IN openSprints()" \
   --plain --columns key,summary,status,assignee
 ```
-
-## Defensive Patterns
-
-### Pagination
-
-`jira issue list` returns at most 100 results by default. For larger result
-sets, paginate explicitly:
-
-```bash
-# First 50 results
-jira issue list -pPROJ --paginate 0:50 --plain
-
-# Next 50
-jira issue list -pPROJ --paginate 50:50 --plain
-```
-
-Stop paginating when the returned row count is less than the requested limit.
-
-### Rate Limiting
-
-Jira Cloud enforces API rate limits. When you receive a 429 response:
-
-1. **Do not retry immediately.** Wait at least 5 seconds before the next call.
-2. **Space sequential commands.** When running multiple commands in sequence
-   (e.g., creating several issues), add `sleep 1` between calls.
-3. **Prefer batch-capable flags** over loops — e.g., `jira epic add EPIC-1
-   ISSUE-1 ISSUE-2 ISSUE-3` instead of three separate `epic add` calls.
-
-### Retry on Transient Errors
-
-Network timeouts and 5xx errors are transient. Retry up to 2 times with
-increasing delay:
-
-```bash
-# Simple retry pattern
-for i in 1 2 3; do
-  jira issue view ISSUE-123 --plain && break
-  sleep "$((i * 2))"
-done
-```
-
-Do not retry 4xx errors (except 429) — they indicate a permanent problem.
 
 ## Error Handling
 
