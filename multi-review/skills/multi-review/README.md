@@ -193,4 +193,3 @@ When installed as a plugin, files are located within the plugin directory:
 └── README.md  # This file (human documentation)
 ```
 
-The command definition is at `<plugin-dir>/commands/multi-review.md`.

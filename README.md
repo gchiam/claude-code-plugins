@@ -101,7 +101,6 @@ claude-code-plugins/
 │   └── marketplace.json                  # Marketplace catalog
 ├── multi-review/                    # Multi-perspective code review plugin
 │   ├── .claude-plugin/plugin.json
-│   ├── commands/multi-review.md
 │   └── skills/multi-review/
 │       ├── SKILL.md
 │       └── README.md
