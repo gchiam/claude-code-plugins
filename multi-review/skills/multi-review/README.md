@@ -84,7 +84,7 @@ default 3).
 
 ## Output Files
 
-All results are saved to `.reviews/<timestamp>/`:
+All results are saved to `.multi-reviews/<timestamp>/`:
 
 | File                          | Description                             |
 | ----------------------------- | --------------------------------------- |
@@ -107,7 +107,7 @@ All results are saved to `.reviews/<timestamp>/`:
 
 | Option              | Default       | Description                      |
 | ------------------- | ------------- | -------------------------------- |
-| `--output-dir`      | `./.reviews/` | Where to save results            |
+| `--output-dir`      | `./.multi-reviews/` | Where to save results            |
 | `--confidence`      | `70`          | Min confidence to include (0-100)|
 | `--max-reviewers`   | `3`           | Max review agents to run         |
 | `--skip-validation` | `false`       | Skip Phase 2 for faster results  |

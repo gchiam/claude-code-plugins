@@ -5,6 +5,10 @@ description: >-
   multi-perspective analysis, when wanting parallel code reviews from
   different methodologies, or when needing validated and aggregated
   review findings including security analysis
+allowed-tools:
+  - Read(.multi-reviews/**)
+  - Write(.multi-reviews/**)
+  - Edit(.multi-reviews/**)
 ---
 
 # Multi Review
@@ -266,7 +270,7 @@ Specify what to review using these options:
 
 | Option              | Description                  | Default       |
 | ------------------- | ---------------------------- | ------------- |
-| `--output-dir`      | Directory for review files   | `./.reviews/` |
+| `--output-dir`      | Directory for review files   | `./.multi-reviews/` |
 | `--confidence`      | Min confidence threshold     | `70`          |
 | `--max-reviewers`   | Max review agents (`all` for no limit) | `3`  |
 | `--no-input`        | Skip agent selection prompt   | `false`       |
