@@ -18,6 +18,15 @@ Otherwise, use a two-step confirmation:
 
 ## Phase 2: Review Agent Prompt
 
+### Pre-launch checklist
+
+Before launching any agents, verify ALL of the following:
+
+- [ ] User has confirmed the Phase 1 agent selection (or `--no-input` is set)
+- [ ] You are using ONLY the confirmed/auto-selected agent types from Phase 1
+
+### Agent prompt
+
 For each agent, use this prompt:
 
 ```jsonc
