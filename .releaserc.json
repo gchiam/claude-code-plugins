@@ -4,7 +4,7 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     ["@semantic-release/exec", {
-      "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version && bash ${process.cwd()}/scripts/sync-plugin-version.sh"
+      "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version --allow-same-version && bash ${process.cwd()}/scripts/sync-plugin-version.sh"
     }],
     ["@semantic-release/git", {
       "assets": [
