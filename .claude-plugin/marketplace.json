@@ -16,6 +16,11 @@
       "name": "jira-cli",
       "source": "./jira-cli",
       "description": "Interact with Jira from the command line using jira-cli"
+    },
+    {
+      "name": "pr-desc-review",
+      "source": "./pr-desc-review",
+      "description": "TODO: Add plugin description"
     }
   ]
 }

@@ -11,7 +11,8 @@
   "description": "Personal collection of Claude Code plugins",
   "workspaces": [
     "multi-review",
-    "jira-cli"
+    "jira-cli",
+    "pr-desc-review"
   ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
