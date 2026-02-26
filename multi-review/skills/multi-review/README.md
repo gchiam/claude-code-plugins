@@ -24,28 +24,56 @@ claude "Run multi-review --pr 123"
 claude "Run multi-review --pr 123 --confidence 80"
 ```
 
-## Suggested Review Plugins
+## Installing Review Plugins
 
-This skill works with any review plugins you have installed. Here are some
-recommended plugins to get the most out of parallel reviews:
+Multi-review auto-discovers whatever review plugins you have installed and runs
+them in parallel. You don't need all of the plugins below — even one is enough —
+but two or more give better coverage through cross-validation.
+
+### Recommended Plugins
+
+| Plugin | Focus | Install |
+| ------ | ----- | ------- |
+| **pr-review-toolkit** | General code review with specialized sub-agents for error handling, test coverage, type design, and comment quality | `claude plugin install pr-review-toolkit@claude-plugins-official` |
+| **coderabbit** | AI-powered review with deep semantic analysis and auto-fix suggestions | `claude plugin install coderabbit@claude-plugins-official` |
+| **code-review** | Lightweight general-purpose code review | `claude plugin install code-review@claude-plugins-official` |
+| **superpowers** | Review against project plan and coding standards | `claude plugin install superpowers@claude-plugins-official` |
+
+### Quick Setup
+
+If you haven't already, add the marketplace that hosts the review plugins:
 
 ```bash
-# General code review (from Anthropic's official plugins)
-claude plugin install code-review@claude-plugins-official
+claude plugin marketplace add anthropics/claude-plugins-official
+```
 
-# Multi-agent PR review with error handling and security analysis
+Then install the plugins:
+
+```bash
 claude plugin install pr-review-toolkit@claude-plugins-official
-
-# CodeRabbit AI-powered code review
 claude plugin install coderabbit@claude-plugins-official
-
-# Security-focused review (from Anthropic's official plugins)
+claude plugin install code-review@claude-plugins-official
 claude plugin install superpowers@claude-plugins-official
 ```
 
-You don't need all of them — the skill will use whatever is available. Even a
-single review plugin is enough, though two or more give better coverage through
-cross-validation.
+Or start with a minimal setup (two plugins for cross-validation):
+
+```bash
+claude plugin install pr-review-toolkit@claude-plugins-official
+claude plugin install coderabbit@claude-plugins-official
+```
+
+### Verify Installation
+
+Check which review agents are available:
+
+```bash
+claude "Run multi-review --pr 1"
+```
+
+Phase 1 of the skill prints a discovery report listing all detected review
+agents before any reviews run. You can cancel after seeing the report if you
+just want to verify your setup.
 
 ## How It Works
 
