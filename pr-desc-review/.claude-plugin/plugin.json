@@ -1,7 +1,7 @@
 {
   "name": "pr-desc-review",
   "version": "1.0.0",
-  "description": "TODO: Add plugin description",
+  "description": "Review PR descriptions to ensure they accurately reflect the implementation",
   "author": {
     "name": "gchiam"
   }
