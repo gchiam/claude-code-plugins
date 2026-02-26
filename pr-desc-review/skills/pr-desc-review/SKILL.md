@@ -31,7 +31,15 @@ find discrepancies, missing mentions, and inaccuracies.
 
 ## Phase 1: Gather Context
 
-**Step 1: Detect the PR for the current branch.**
+**Step 1: Detect the PR.**
+
+If the user specified a PR number or URL, use it directly:
+
+```bash
+gh pr view <NUMBER_OR_URL> --json number,title,body,url
+```
+
+Otherwise, auto-detect from the current branch:
 
 ```bash
 gh pr view --json number,title,body,url
@@ -52,12 +60,19 @@ Then **STOP** — do not proceed to Phase 2.
 gh pr diff
 ```
 
-**Step 3: Print the context header.**
+If this command fails (exit code non-zero or empty output), print:
 
 ```text
-PR Description Review - PR #<NUMBER>
-════════════════════════════════════════
-Reviewing: <TITLE>
+Failed to fetch the PR diff. The PR may have no changes, or there may be a
+network issue. Please verify the PR has commits and try again.
+```
+
+Then **STOP** — do not proceed to Phase 2.
+
+**Step 3: Print progress.**
+
+```text
+Analyzing PR #<NUMBER>: <TITLE>
 URL: <URL>
 ```
 
@@ -71,10 +86,14 @@ Systematically compare the PR description against the diff.
 
 ### Step 1: Parse Description Claims
 
-Read the PR body and extract every concrete claim about what was changed. A
-claim is any statement that asserts something was added, removed, modified,
-fixed, refactored, or configured. Ignore boilerplate (e.g., template headings
-with no content, checkbox lists that are structural).
+If the PR body is empty, null, or contains only template boilerplate with no
+actual content, skip to Phase 3 and report all diff changes as **Missing** with
+the note: "PR description is empty — all changes are undocumented."
+
+Otherwise, read the PR body and extract every concrete claim about what was
+changed. A claim is any statement that asserts something was added, removed,
+modified, fixed, refactored, or configured. Ignore boilerplate (e.g., template
+headings with no content, checkbox lists that are structural).
 
 Number each claim for reference in the report.
 
@@ -119,11 +138,14 @@ Guidelines for classification:
 
 Print the structured report using this exact format.
 
+<!-- Keep report format in sync with agents/desc-reviewer.md -->
+
 ### When discrepancies are found
 
 ```text
 PR Description Review - PR #<NUMBER>
 ════════════════════════════════════════
+Reviewing: <TITLE>
 
 [✓] <N> claims verified
 [✗] <N> discrepancies found
@@ -152,6 +174,7 @@ Rules for the suggested description:
 ```text
 PR Description Review - PR #<NUMBER>
 ════════════════════════════════════════
+Reviewing: <TITLE>
 
 [✓] <N> claims verified
 [✗] 0 discrepancies found

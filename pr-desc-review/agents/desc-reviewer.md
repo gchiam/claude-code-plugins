@@ -26,9 +26,12 @@ from the diff, and reports any mismatches.
      ```
 
 2. **Parse Description Claims**
-   - Extract every concrete claim from the PR body about what was changed.
-   - A claim is any statement asserting something was added, removed, modified,
-     fixed, refactored, or configured.
+   - If the PR body is empty, null, or template-only, report all diff changes as
+     **Missing** with the note: "PR description is empty — all changes are
+     undocumented."
+   - Otherwise, extract every concrete claim from the PR body about what was
+     changed. A claim is any statement asserting something was added, removed,
+     modified, fixed, refactored, or configured.
    - Ignore boilerplate (template headings with no content, structural
      checkboxes). Number each claim for reference.
 
@@ -55,6 +58,8 @@ from the diff, and reports any mismatches.
 
 ## Output Format
 
+<!-- Keep report format in sync with skills/pr-desc-review/SKILL.md -->
+
 Always return findings as markdown. Do **NOT** post comments to the PR. Do
 **NOT** use `gh pr comment` or any command that writes to the PR.
 
@@ -63,6 +68,7 @@ Always return findings as markdown. Do **NOT** post comments to the PR. Do
 ```text
 PR Description Review - PR #<NUMBER>
 ════════════════════════════════════════
+Reviewing: <TITLE>
 
 [✓] <N> claims verified
 [✗] <N> discrepancies found
@@ -88,6 +94,7 @@ Rules for the suggested description:
 ```text
 PR Description Review - PR #<NUMBER>
 ════════════════════════════════════════
+Reviewing: <TITLE>
 
 [✓] <N> claims verified
 [✗] 0 discrepancies found

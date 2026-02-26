@@ -20,6 +20,7 @@ Format: `type(scope): description`
 ### Scopes
 - `multi-review` -- multi-review plugin
 - `jira-cli` -- jira-cli plugin
+- `pr-desc-review` -- PR description review plugin
 - `repo` -- repo-level (CI, README, marketplace config)
 
 Unscoped commits are allowed and map to the repo-level version.
