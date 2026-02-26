@@ -132,7 +132,10 @@ claude-code-plugins/
 │   ├── .claude-plugin/plugin.json
 │   └── skills/multi-review/
 │       ├── SKILL.md
-│       └── README.md
+│       ├── README.md
+│       └── references/
+│           ├── phase-templates.md
+│           └── options-and-errors.md
 ├── pr-desc-review/                          # PR description review plugin
 │   ├── .claude-plugin/plugin.json
 │   ├── skills/pr-desc-review/SKILL.md

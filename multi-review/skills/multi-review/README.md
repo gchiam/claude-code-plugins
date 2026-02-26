@@ -84,25 +84,25 @@ default 3).
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 0: Discover available review agents                          │
+│  Phase 1: Discover available review agents                          │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 1: Run discovered reviews in PARALLEL                        │
+│  Phase 2: Run discovered reviews in PARALLEL                        │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐                │
 │  │ Reviewer 1   │ │ Reviewer 2   │ │ Reviewer 3   │                │
 │  └──────────────┘ └──────────────┘ └──────────────┘                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 2: Validate findings in PARALLEL                             │
+│  Phase 3: Validate findings in PARALLEL                             │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐                │
 │  │ Validator 1  │ │ Validator 2  │ │ Validator 3  │                │
 │  └──────────────┘ └──────────────┘ └──────────────┘                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 3: Aggregate & deduplicate into final summary                │
+│  Phase 4: Aggregate & deduplicate into final summary                │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -138,7 +138,7 @@ All results are saved to `.multi-reviews/<timestamp>/`:
 | `--output-dir`      | `./.multi-reviews/` | Where to save results            |
 | `--confidence`      | `70`          | Min confidence to include (0-100)|
 | `--max-reviewers`   | `3`           | Max review agents to run         |
-| `--skip-validation` | `false`       | Skip Phase 2 for faster results  |
+| `--skip-validation` | `false`       | Skip Phase 3 for faster results  |
 
 ## Examples
 
@@ -217,7 +217,10 @@ When installed as a plugin, files are located within the plugin directory:
 
 ```text
 <plugin-dir>/skills/multi-review/
-├── SKILL.md   # Instructions for Claude (technical)
-└── README.md  # This file (human documentation)
+├── SKILL.md                          # Instructions for Claude (compact)
+├── README.md                         # This file (human documentation)
+└── references/
+    ├── phase-templates.md            # Prompt templates, output formats, aggregation rules
+    └── options-and-errors.md         # Input options, configuration, error handling
 ```
 
