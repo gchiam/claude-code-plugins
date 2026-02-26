@@ -13,6 +13,7 @@ claude plugin marketplace add gchiam/claude-code-plugins
 # Step 2: Install individual plugins
 claude plugin install multi-review@gchiam-plugins
 claude plugin install jira-cli@gchiam-plugins
+claude plugin install pr-desc-review@gchiam-plugins
 ```
 
 ### From local clone
@@ -30,6 +31,7 @@ claude plugin marketplace add ./claude-code-plugins
 # Remove individual plugins
 claude plugin remove multi-review
 claude plugin remove jira-cli
+claude plugin remove pr-desc-review
 
 # Optionally remove the marketplace
 claude plugin marketplace remove gchiam-plugins
@@ -65,6 +67,33 @@ Or use the command:
 
 See [multi-review/skills/multi-review/README.md](multi-review/skills/multi-review/README.md)
 for full documentation.
+
+### pr-desc-review
+
+Review PR descriptions to ensure they accurately reflect the implementation.
+Compares what the description claims against the actual code changes and
+reports discrepancies.
+
+**Usage:**
+
+```text
+/pr-desc-review
+```
+
+Or with a specific PR:
+
+```text
+/pr-desc-review --pr 123
+```
+
+**Features:**
+
+- Auto-detects PR from current branch (or accepts explicit PR number)
+- Parses description claims and cross-references against the diff
+- Classifies findings: Missing, Inaccurate, Incomplete, Scope mismatch
+- Suggests corrected PR description text
+- Multi-review compatible (discovered as `pr-desc-review:desc-reviewer`)
+- No auto-updating of PR descriptions
 
 ### jira-cli
 
@@ -104,7 +133,11 @@ claude-code-plugins/
 │   └── skills/multi-review/
 │       ├── SKILL.md
 │       └── README.md
-├── jira-cli/                             # Jira CLI plugin
+├── pr-desc-review/                          # PR description review plugin
+│   ├── .claude-plugin/plugin.json
+│   ├── skills/pr-desc-review/SKILL.md
+│   └── agents/desc-reviewer.md
+├── jira-cli/                                # Jira CLI plugin
 │   ├── .claude-plugin/plugin.json
 │   └── skills/jira-cli/
 │       ├── SKILL.md
