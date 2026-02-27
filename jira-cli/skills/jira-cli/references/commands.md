@@ -228,7 +228,13 @@ TIME_SPENT format: `2d 1h 30m` (days, hours, minutes separated by space).
 jira issue link INWARD_KEY OUTWARD_KEY LINK_TYPE
 ```
 
-Common link types: `Blocks`, `Duplicates`, `Relates`, `Cloners`.
+Common link types: `Blocks`, `Composition`, `Duplicates`, `Relates`, `Cloners`.
+
+Discover available link types on your instance:
+
+```bash
+jira issue view ANY-ISSUE --raw | jq -r '[.fields.issuelinks[].type] | unique_by(.name) | .[].name'
+```
 
 #### issue link remote
 

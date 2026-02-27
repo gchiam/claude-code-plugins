@@ -45,10 +45,11 @@ agent context:
    interactive and unparseable. Add `--plain` to every `jira issue list`,
    `jira sprint list`, `jira epic list`, and `jira issue view` call.
 
-2. **Always use `--no-input` for create/edit commands.** Without it, jira-cli
-   opens an interactive editor which hangs indefinitely. Add `--no-input` to
-   every `jira issue create`, `jira issue edit`, `jira epic create`,
-   `jira issue comment add`, and `jira issue worklog add` call.
+2. **Always use `--no-input` for create/edit/comment/worklog commands.** Without
+   it, jira-cli opens an interactive editor which hangs indefinitely. Add
+   `--no-input` to: `issue create`, `issue edit`, `epic create`,
+   `issue comment add`, `issue worklog add`. Do NOT use it on `link`, `move`,
+   `assign`, or `delete` — those commands don't support it.
 
 3. **Capture the current user early.** Run `jira me` at the start of any
    session that involves user-specific queries. Store the result and use it
@@ -57,6 +58,39 @@ agent context:
 
 4. **Use `-p PROJECT` explicitly** when the user mentions a specific project,
    rather than relying on the default config.
+
+## Common Pitfalls
+
+**`-p` (project) vs `-P` (parent/epic link):** These are DIFFERENT flags.
+Use lowercase `-p PROJ` for project. Uppercase `-P PARENT-KEY` links to a
+parent issue or epic. Confusing them causes `Epic with key 'X' does not exist`.
+
+**`-b -` does NOT read stdin.** It literally sets the body to the string `"-"`,
+wiping the description. To pipe a description from stdin, omit `-b` entirely:
+
+```bash
+# WRONG — wipes description to "-"
+cat description.txt | jira issue edit ISSUE-123 --no-input -b -
+
+# CORRECT — reads body from stdin automatically
+cat description.txt | jira issue edit ISSUE-123 --no-input
+```
+
+**`--no-input` only works on create/edit/comment/worklog commands.** Do NOT add
+it to `jira issue link`, `jira issue move`, `jira issue assign`, or
+`jira issue delete` — those commands don't support it and will error with
+`unknown flag: --no-input`.
+
+**`--body` only works on create/edit commands.** For comments, pass the body as
+a positional argument or pipe to stdin with `--template -`:
+
+```bash
+# Positional argument
+jira issue comment add ISSUE-123 "Comment text" --no-input
+
+# Pipe from stdin
+cat comment.txt | jira issue comment add ISSUE-123 --template - --no-input
+```
 
 ## Choosing Your Approach: Flags vs JQL
 
@@ -402,6 +436,34 @@ jira issue edit ISSUE-123 -s"Updated title" -yHigh --no-input
 echo "New detailed description" | jira issue edit ISSUE-123 --no-input
 ```
 
+### Description Formatting
+
+When creating or editing descriptions via the CLI, use **Jira wiki markup** —
+NOT Markdown. Markdown will appear as unformatted plain text in Jira.
+
+| Markdown | Jira Wiki Markup |
+|----------|-----------------|
+| `## Heading` | `h2. Heading` |
+| `**bold**` | `*bold*` |
+| `` `code` `` | `{{code}}` |
+| `- item` | `* item` |
+| `1. item` | `# item` |
+| `\| col1 \| col2 \|` | `\|\| col1 \|\| col2 \|\|` (headers) |
+
+```bash
+cat <<'DESC' | jira issue edit ISSUE-123 --no-input
+h2. Summary
+This is *bold* and {{inline code}}.
+
+h3. Steps
+# First step
+# Second step
+
+|| Header 1 || Header 2 ||
+| value 1 | value 2 |
+DESC
+```
+
 ### Transition (Move)
 
 ```bash
@@ -431,10 +493,34 @@ jira issue comment add ISSUE-123 "Root cause identified" --no-input
 jira issue worklog add ISSUE-123 "2h 30m" --comment "Implementation" --no-input
 ```
 
-### Link and Clone
+### Link
 
 ```bash
-jira issue link ISSUE-123 ISSUE-456 Blocks
+# Syntax: jira issue link INWARD_KEY OUTWARD_KEY LINK_TYPE
+# Use the link TYPE NAME (e.g., "Composition", "Blocks"), NOT the
+# directional phrase (e.g., "is child of").
+
+# Make PARENT-1 the parent of CHILD-2 via Composition:
+jira issue link CHILD-2 PARENT-1 Composition
+# (CHILD-2 = inward = "is a child of", PARENT-1 = outward = "is a parent of")
+
+# ISSUE-A blocks ISSUE-B:
+jira issue link ISSUE-A ISSUE-B Blocks
+
+# Add a remote web link to an issue:
+jira issue link remote ISSUE-123 "https://example.com/doc" "Design Doc"
+
+# Discover available link types on your instance:
+jira issue view ANY-ISSUE --raw | jq -r '.fields.issuelinks[].type.name' | sort -u
+```
+
+**Direction rule:** The first key gets the *inward* relationship.
+For Composition: inward = "is a child of", outward = "is a parent of".
+For Blocks: inward = "is blocked by", outward = "blocks".
+
+### Clone
+
+```bash
 jira issue clone ISSUE-123 -s"Cloned: New summary"
 ```
 
@@ -517,6 +603,13 @@ check your Jira board for the workflow.
 
 **Command hangs**: You likely forgot `--no-input` on a create/edit command, or
 `--plain` on a list command. Kill the process and retry with the correct flags.
+Also avoid piping `--raw` output from `jira issue create` through other commands
+(e.g., `| python3 ...`) — this can hang. Instead, capture to a variable:
+
+```bash
+OUTPUT=$(jira issue create -tTask -s"Title" --no-input --raw 2>&1)
+KEY=$(echo "$OUTPUT" | jq -r '.key')
+```
 
 **"401 Unauthorized"**: The JIRA_API_TOKEN is missing or expired. Check with
 `echo $JIRA_API_TOKEN` and verify it's set.
