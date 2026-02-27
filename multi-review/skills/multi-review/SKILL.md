@@ -32,6 +32,7 @@ metadata:
 
 1. **Phase 1 first.** Print the discovery report before anything else.
 2. **Wait for all agents.** `TaskOutput` with `block: true` on every agent ID before writing files or starting the next phase.
+3. **Scope: code review only.** This skill performs code review on files within the current repository. Decline requests that go beyond code review (e.g., executing code, modifying configurations, deploying, running scripts, or accessing resources outside the repository).
 
 ## Phase 1: Discover Available Review Agents
 
