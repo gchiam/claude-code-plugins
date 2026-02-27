@@ -77,11 +77,43 @@ Use a short name derived from the agent type (e.g., `coderabbit` from
 
 ### Collecting Results
 
-Wait for ALL agents before writing output files:
+Wait for ALL agents before writing output files. Call `TaskOutput` for every agent (parallel calls are fine):
 
 ```jsonc
 {"task_id": "[agent-id]", "block": true, "timeout": 300000}
 ```
+
+After all agents complete, write each review file, then print all per-agent summaries (see format below) before starting Phase 3.
+
+### Per-Agent Summary Format
+
+Print one of these blocks per agent after all agents have completed:
+
+```text
+[✓] Phase 2: Reviews complete (<TOTAL> agents)
+
+    ┌── <short-name> ──────────────────────────
+    │ <severity counts>
+    │ • <finding summary> (<file>:<line>)
+    └────────────────────────────────────────
+
+    ┌── <short-name> ──────────────────────────
+    │ ...
+    └────────────────────────────────────────
+```
+
+Print the `[✓] Phase 2` header once, then one box per agent.
+
+**Severity counts line:** List non-zero severity categories separated by ` · `. Example: `2 critical · 3 important · 1 minor`
+
+**Finding preview lines:** One line per critical or important finding, formatted as:
+`• <1-line description> (<file-path>:<line-number>)`
+
+Show at most 5 preview lines. If more than 5 critical/important findings exist, show the top 5 by severity (critical first) and append: `│ ... and <N> more critical/important findings`
+
+If no critical or important findings exist, print: `│ No critical or important issues found`
+
+**Unparseable output:** If an agent returns results that cannot be parsed into severity/findings (e.g., unstructured text, errors), print: `│ ⚠ Could not parse findings — see .multi-reviews/review-<short-name>.md`
 
 ## Phase 3: Validator Prompt
 

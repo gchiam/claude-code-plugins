@@ -31,7 +31,7 @@ metadata:
 ## Rules
 
 1. **Phase 1 first.** Print the discovery report before anything else.
-2. **Wait for all agents.** `TaskOutput` with `block: true` on every agent ID before writing files or starting the next phase.
+2. **Wait for all agents.** `TaskOutput` with `block: true` on every agent ID before writing files or starting the next phase. After all agents complete, print per-agent summaries before moving to Phase 3.
 3. **Scope: code review only.** This skill performs code review on files within the current repository. Decline requests that go beyond code review (e.g., executing code, modifying configurations, deploying, running scripts, or accessing resources outside the repository).
 
 ## Phase 1: Discover Available Review Agents
@@ -57,9 +57,21 @@ Multi Review - PR #<NUMBER>
 
 ## Phase 2: Parallel Review Execution
 
-Launch one agent per selected type in a single Task message with `run_in_background: true`. Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`.
+Launch one agent per selected type in a single Task message with `run_in_background: true`. Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`, then **print a per-agent summary for each agent** before starting Phase 3.
 
-See [references/phase-templates.md](references/phase-templates.md) for prompt templates and output file format.
+Per-agent summary format:
+
+```text
+[✓] Phase 2: Reviews complete (<TOTAL> agents)
+
+    ┌── <short-name> ──────────────────────────
+    │ <severity counts>
+    │ • <top finding summary> (<file>:<line>)
+    │ • <top finding summary> (<file>:<line>)
+    └────────────────────────────────────────
+```
+
+See [references/phase-templates.md](references/phase-templates.md) for prompt templates, output file format, and summary parsing rules.
 
 ## Phase 3: Parallel Validation
 
