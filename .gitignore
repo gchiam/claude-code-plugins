@@ -1,6 +1,9 @@
 # Review output directories
 .multi-reviews/
 
+# Claude context
+.claude/context/
+
 # Git worktrees
 .worktrees/
 
