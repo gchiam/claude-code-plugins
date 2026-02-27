@@ -112,7 +112,7 @@ default 3).
 
 ## Output Files
 
-All results are saved to `.multi-reviews/<timestamp>/`:
+All results are saved to `.multi-reviews/`:
 
 | File                          | Description                             |
 | ----------------------------- | --------------------------------------- |

@@ -57,7 +57,7 @@ Configuration:
 
 ### Output File Header
 
-Include in each `review-<short-name>.md`:
+Include in each `.multi-reviews/review-<short-name>.md`:
 
 ```markdown
 # Code Review Results
@@ -88,7 +88,7 @@ Wait for ALL agents before writing output files:
 Launch one validation agent per review output:
 
 ```markdown
-Read and evaluate the findings in review-<name>.md.
+Read and evaluate the findings in .multi-reviews/review-<name>.md.
 
 For each issue found:
 1. Verify the issue is real (not a false positive)
@@ -106,7 +106,7 @@ Filter criteria:
 Output: Validated findings with confidence scores and reasoning.
 ```
 
-Output: `validated-<short-name>.md`
+Output: `.multi-reviews/validated-<short-name>.md`
 
 ## Phase 4: Aggregation Rules
 
@@ -137,4 +137,4 @@ Report sections: Executive Summary, Security Issues, Critical Issues,
 Important Issues, Suggestions, Positive Observations, Review Agreement
 Analysis, Recommended Actions.
 
-Output file: `pr-review-summary.md`
+Output file: `.multi-reviews/pr-review-summary.md`

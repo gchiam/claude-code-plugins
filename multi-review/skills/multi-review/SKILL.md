@@ -56,19 +56,19 @@ Multi Review - PR #<NUMBER>
 
 ## Phase 2: Parallel Review Execution
 
-Launch one agent per selected type in a single Task message with `run_in_background: true`. Wait for all via `TaskOutput`. Write results to `review-<short-name>.md`.
+Launch one agent per selected type in a single Task message with `run_in_background: true`. Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`.
 
 See [references/phase-templates.md](references/phase-templates.md) for prompt templates and output file format.
 
 ## Phase 3: Parallel Validation
 
-Launch one validator per review output. Filter false positives, assess severity and confidence. Write to `validated-<short-name>.md`. Skip if `--skip-validation`.
+Launch one validator per review output. Filter false positives, assess severity and confidence. Write to `.multi-reviews/validated-<short-name>.md`. Skip if `--skip-validation`.
 
 See [references/phase-templates.md](references/phase-templates.md) for validator prompt.
 
 ## Phase 4: Aggregate Summary
 
-Deduplicate, categorize by severity, cross-reference sources, write `pr-review-summary.md`.
+Deduplicate, categorize by severity, cross-reference sources, write `.multi-reviews/pr-review-summary.md`.
 
 See [references/phase-templates.md](references/phase-templates.md) for aggregation rules.
 
