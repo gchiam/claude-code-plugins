@@ -12,7 +12,8 @@
   "workspaces": [
     "multi-review",
     "jira-cli",
-    "pr-desc-review"
+    "pr-desc-review",
+    "claude-cleanup"
   ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",

@@ -21,6 +21,11 @@
       "name": "pr-desc-review",
       "source": "./pr-desc-review",
       "description": "Review PR descriptions to ensure they accurately reflect the implementation"
+    },
+    {
+      "name": "claude-cleanup",
+      "source": "./claude-cleanup",
+      "description": "TODO: Add plugin description"
     }
   ]
 }

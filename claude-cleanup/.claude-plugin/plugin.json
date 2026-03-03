@@ -1,0 +1,8 @@
+{
+  "name": "claude-cleanup",
+  "version": "1.0.0",
+  "description": "Clean up stale project entries in ~/.claude.json whose directories no longer exist on disk",
+  "author": {
+    "name": "gchiam"
+  }
+}
