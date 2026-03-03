@@ -39,8 +39,7 @@ Run:
 bash "$SCRIPT" --dry-run
 ```
 
-- If output is "Nothing to clean — all project paths exist on disk.", report
-  this to the user and **stop**.
+- If output starts with "Nothing to clean", report this to the user and **stop**.
 - Otherwise display the stale paths listed in the output.
 
 ## Phase 2 — Insights prompt
