@@ -53,6 +53,7 @@ echo "Backup saved to ${CLAUDE_JSON}.bak"
 
 STALE_JSON=$(printf '%s\n' "${STALE[@]}" | jq -R . | jq -s .)
 TMP=$(mktemp)
+trap 'rm -f "$TMP"' EXIT
 jq --argjson stale "$STALE_JSON" \
   'reduce $stale[] as $p (.; del(.projects[$p]))' \
   "$CLAUDE_JSON" > "$TMP"
