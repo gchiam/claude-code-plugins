@@ -25,7 +25,7 @@
     {
       "name": "claude-cleanup",
       "source": "./claude-cleanup",
-      "description": "TODO: Add plugin description"
+      "description": "Clean up stale project entries in ~/.claude.json whose directories no longer exist on disk"
     }
   ]
 }
