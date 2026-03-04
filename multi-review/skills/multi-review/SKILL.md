@@ -10,6 +10,9 @@ allowed-tools:
   - Read(.multi-reviews/**)
   - Write(.multi-reviews/**)
   - Edit(.multi-reviews/**)
+  - AskUserQuestion
+  - Task
+  - TaskOutput
 argument-hint: "[--pr <number>] [--branch <name>] [--files <paths>]"
 model:
 context:
