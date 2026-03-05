@@ -169,4 +169,4 @@ Report sections: Executive Summary, Security Issues, Critical Issues,
 Important Issues, Suggestions, Positive Observations, Review Agreement
 Analysis, Recommended Actions.
 
-Output file: `.multi-reviews/pr-review-summary.md`
+Output file: `.multi-reviews/review-summary.md`

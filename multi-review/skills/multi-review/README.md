@@ -118,7 +118,7 @@ All results are saved to `.multi-reviews/`:
 | ----------------------------- | --------------------------------------- |
 | `review-<reviewer>.md`        | Raw findings from each review agent     |
 | `validated-<reviewer>.md`     | Filtered findings per reviewer          |
-| `pr-review-summary.md`       | **Final aggregated report**             |
+| `review-summary.md`          | **Final aggregated report**             |
 
 ## Options
 
@@ -164,7 +164,7 @@ claude "Run multi-review --files src/auth.ts src/login.ts"
 
 ## Understanding the Summary
 
-The final `pr-review-summary.md` includes:
+The final `review-summary.md` includes:
 
 ### Issue Categories
 

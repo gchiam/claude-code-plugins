@@ -7,6 +7,8 @@ user-invocable: true
 disable-model-invocation: false
 allowed-tools:
   - Bash(mkdir -p .multi-reviews)
+  - Read(references/**)
+  - Read(/Users/gchiam/.claude/plugins/**)
   - Read(.multi-reviews/**)
   - Write(.multi-reviews/**)
   - Edit(.multi-reviews/**)
@@ -84,7 +86,7 @@ See [references/phase-templates.md](references/phase-templates.md) for validator
 
 ## Phase 4: Aggregate Summary
 
-Deduplicate, categorize by severity, cross-reference sources, write `.multi-reviews/pr-review-summary.md`.
+Deduplicate, categorize by severity, cross-reference sources, write `.multi-reviews/review-summary.md`.
 
 See [references/phase-templates.md](references/phase-templates.md) for aggregation rules.
 
