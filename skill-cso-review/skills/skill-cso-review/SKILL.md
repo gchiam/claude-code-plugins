@@ -17,11 +17,17 @@ using the skill-quality-reviewer agent.
 - You only want to preview a skill's content (use Read instead)
 - You are not working in a repo that contains SKILL.md files
 
-## Usage
+## Automatic Checks
 
-Run `/review-skills` to audit all SKILL.md files in the current repo.
+When this plugin is enabled, a `PostToolUse` hook automatically checks C1 and I1
+after any `SKILL.md` edit. If issues are found, Claude is notified immediately via
+a system message.
 
-Run `/review-skills <path>` to audit a specific file or directory.
+## Manual Review
+
+Run `/skill-cso-review:review-skills` to audit all SKILL.md files in the current repo.
+
+Run `/skill-cso-review:review-skills <path>` to audit a specific file or directory.
 
 ## Criteria Checked
 
