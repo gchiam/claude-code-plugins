@@ -2,7 +2,7 @@
 name: multi-review
 description: >-
   Use when reviewing a PR with multiple specialized reviewers,
-  want to cross-validate findings, or need an aggregated deduplicated code review summary
+  want broader coverage than a single review pass, or are working on a large or high-risk change
 user-invocable: true
 disable-model-invocation: false
 allowed-tools:
