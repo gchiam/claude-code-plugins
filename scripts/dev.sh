@@ -41,7 +41,7 @@ if ! echo "$PLUGIN_NAME" | grep -qE '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'; then
   exit 1
 fi
 
-PLUGIN_DIR="$REPO_ROOT/$PLUGIN_NAME"
+PLUGIN_DIR="$REPO_ROOT/plugins/$PLUGIN_NAME"
 
 if [ ! -d "$PLUGIN_DIR/.claude-plugin" ]; then
   echo "Error: '$PLUGIN_NAME' is not a valid plugin directory"

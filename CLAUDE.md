@@ -39,10 +39,14 @@ build(repo): add commitlint configuration
 
 ## Dev Workflow
 
+### Plugin layout
+All plugins live under `plugins/<name>/`. Do not assume root-level plugin dirs.
+
 ### Validate all plugins
 ```
 npm run validate
 ```
+Note: `claude plugin validate` requires an interactive TTY — this command hangs in subshells. Run it manually in a terminal.
 
 ### Test a plugin locally
 ```

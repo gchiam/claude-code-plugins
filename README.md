@@ -29,19 +29,19 @@ claude plugin marketplace add ./claude-code-plugins
 
 | Plugin | Description | Invocation | Prerequisites |
 |---|---|---|---|
-| [multi-review](multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` | — |
-| [pr-desc-review](pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` | — |
-| [jira-cli](jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` | [jira-cli](https://github.com/ankitpokhrel/jira-cli), `JIRA_API_TOKEN` |
-| [claude-cleanup](claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` | — |
-| [git-absorb](git-absorb/README.md) | Create fixup commits targeting the right parent using `git absorb` | `/git-absorb` | [git-absorb](https://github.com/tummychow/git-absorb) |
-| [skill-cso-review](skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` | — |
+| [multi-review](plugins/multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` | — |
+| [pr-desc-review](plugins/pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` | — |
+| [jira-cli](plugins/jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` | [jira-cli](https://github.com/ankitpokhrel/jira-cli), `JIRA_API_TOKEN` |
+| [claude-cleanup](plugins/claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` | — |
+| [git-absorb](plugins/git-absorb/README.md) | Create fixup commits targeting the right parent using `git absorb` | `/git-absorb` | [git-absorb](https://github.com/tummychow/git-absorb) |
+| [skill-cso-review](plugins/skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` | — |
 
 ## Structure
 
-Each plugin lives in its own directory and follows the standard Claude Code plugin layout:
+Each plugin lives under `plugins/` and follows the standard Claude Code plugin layout:
 
 ```text
-<plugin-name>/
+plugins/<plugin-name>/
 ├── .claude-plugin/plugin.json   # Manifest
 ├── skills/<plugin-name>/        # Skill (auto-activates on context match)
 │   └── SKILL.md

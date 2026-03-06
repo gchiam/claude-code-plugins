@@ -30,7 +30,7 @@ if ! echo "$PLUGIN_NAME" | grep -qE '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'; then
   exit 1
 fi
 
-PLUGIN_DIR="$REPO_ROOT/$PLUGIN_NAME"
+PLUGIN_DIR="$REPO_ROOT/plugins/$PLUGIN_NAME"
 
 if [ -d "$PLUGIN_DIR" ]; then
   echo "Error: Directory '$PLUGIN_NAME' already exists"
@@ -129,7 +129,7 @@ if (m.plugins.some(p => p.name === pluginName)) {
 }
 m.plugins.push({
   name: pluginName,
-  source: './' + pluginName,
+  source: './plugins/' + pluginName,
   description: 'TODO: Add plugin description'
 });
 fs.writeFileSync(filePath, JSON.stringify(m, null, 2) + '\n');
@@ -173,8 +173,8 @@ if (!Array.isArray(pkg.workspaces)) {
   console.error('Error: package.json is missing a workspaces array');
   process.exit(1);
 }
-if (!pkg.workspaces.includes(pluginName)) {
-  pkg.workspaces.push(pluginName);
+if (!pkg.workspaces.includes('plugins/' + pluginName)) {
+  pkg.workspaces.push('plugins/' + pluginName);
 }
 fs.writeFileSync(filePath, JSON.stringify(pkg, null, 2) + '\n');
 "
@@ -190,9 +190,9 @@ echo ""
 echo "Plugin '$PLUGIN_NAME' created successfully!"
 echo ""
 echo "Created:"
-echo "  $PLUGIN_NAME/.claude-plugin/plugin.json"
-echo "  $PLUGIN_NAME/package.json"
-echo "  $PLUGIN_NAME/skills/$PLUGIN_NAME/SKILL.md"
+echo "  plugins/$PLUGIN_NAME/.claude-plugin/plugin.json"
+echo "  plugins/$PLUGIN_NAME/package.json"
+echo "  plugins/$PLUGIN_NAME/skills/$PLUGIN_NAME/SKILL.md"
 echo ""
 echo "Registered in:"
 echo "  .claude-plugin/marketplace.json"
@@ -200,7 +200,7 @@ echo "  commitlint.config.js (scope: '$PLUGIN_NAME')"
 echo "  package.json (workspace: '$PLUGIN_NAME')"
 echo ""
 echo "Next steps:"
-echo "  1. Edit $PLUGIN_NAME/.claude-plugin/plugin.json — update description"
-echo "  2. Edit $PLUGIN_NAME/skills/$PLUGIN_NAME/SKILL.md — write skill instructions"
+echo "  1. Edit plugins/$PLUGIN_NAME/.claude-plugin/plugin.json — update description"
+echo "  2. Edit plugins/$PLUGIN_NAME/skills/$PLUGIN_NAME/SKILL.md — write skill instructions"
 echo "  3. Run: npm run validate"
 echo "  4. Run: npm run dev -- $PLUGIN_NAME"

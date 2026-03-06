@@ -9,32 +9,32 @@
   "plugins": [
     {
       "name": "multi-review",
-      "source": "./multi-review",
+      "source": "./plugins/multi-review",
       "description": "Multi-perspective code review with validation and aggregation"
     },
     {
       "name": "jira-cli",
-      "source": "./jira-cli",
+      "source": "./plugins/jira-cli",
       "description": "Interact with Jira from the command line using jira-cli"
     },
     {
       "name": "pr-desc-review",
-      "source": "./pr-desc-review",
+      "source": "./plugins/pr-desc-review",
       "description": "Review PR descriptions to ensure they accurately reflect the implementation"
     },
     {
       "name": "claude-cleanup",
-      "source": "./claude-cleanup",
+      "source": "./plugins/claude-cleanup",
       "description": "Clean up stale project entries in ~/.claude.json whose directories no longer exist on disk"
     },
     {
       "name": "git-absorb",
-      "source": "./git-absorb",
+      "source": "./plugins/git-absorb",
       "description": "Identify and create fixup commits for staged changes using git-absorb"
     },
     {
       "name": "skill-cso-review",
-      "source": "./skill-cso-review",
+      "source": "./plugins/skill-cso-review",
       "description": "TODO: Add plugin description"
     }
   ]
