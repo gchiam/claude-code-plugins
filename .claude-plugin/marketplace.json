@@ -31,6 +31,11 @@
       "name": "git-absorb",
       "source": "./git-absorb",
       "description": "Identify and create fixup commits for staged changes using git-absorb"
+    },
+    {
+      "name": "skill-cso-review",
+      "source": "./skill-cso-review",
+      "description": "TODO: Add plugin description"
     }
   ]
 }

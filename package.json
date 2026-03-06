@@ -14,7 +14,8 @@
     "jira-cli",
     "pr-desc-review",
     "claude-cleanup",
-    "git-absorb"
+    "git-absorb",
+    "skill-cso-review"
   ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",

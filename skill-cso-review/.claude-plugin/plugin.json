@@ -1,0 +1,8 @@
+{
+  "name": "skill-cso-review",
+  "version": "1.0.0",
+  "description": "Audit SKILL.md files for CSO compliance — checks descriptions, workflow summaries, and structure",
+  "author": {
+    "name": "gchiam"
+  }
+}
