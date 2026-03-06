@@ -1,15 +1,20 @@
 ---
 name: claude-cleanup
 description: >-
-  Clean up stale project entries in ~/.claude.json whose directories no longer
-  exist on disk. Use when the user says "clean up claude.json", "remove stale
-  projects", "prune old project entries", or "clean up my Claude project history".
+  Use when the user says "clean up claude.json", "remove stale projects", "prune
+  old project entries", "clean up my Claude project history", or wants to remove
+  project entries from ~/.claude.json whose directories no longer exist on disk.
 ---
 
 # Claude Cleanup
 
 Remove project entries from `~/.claude.json` whose directories no longer exist
 on disk.
+
+## When NOT to Use
+
+- The user wants to delete *all* project history (this only removes entries whose directories are missing)
+- The user wants to manually edit `~/.claude.json` for other reasons
 
 ## Rules
 
