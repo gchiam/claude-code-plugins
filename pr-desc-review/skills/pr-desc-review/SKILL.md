@@ -1,13 +1,10 @@
 ---
 name: pr-desc-review
 description: >-
-  Review PR description accuracy by comparing what the description claims against
-  the actual code changes. Use this skill to review a PR description, check if a
-  PR description matches the implementation, verify PR accuracy, or perform a
-  code review focused on whether the description reflects reality. Trigger when
-  the user says things like "review PR description", "does my PR description
-  match the code", "check PR accuracy", "is my PR description correct", or
-  "description review".
+  Use when the user asks to review a PR description, check if a PR description
+  matches the implementation, verify PR accuracy, or says things like "review PR
+  description", "does my PR description match the code", "check PR accuracy",
+  "is my PR description correct", or "description review".
 ---
 
 # PR Description Review
@@ -17,6 +14,11 @@ find discrepancies, missing mentions, and inaccuracies.
 
 > **Your first action is Phase 1 below. Do NOT skip to analysis without
 > gathering context first.**
+
+## When NOT to Use
+
+- The PR has no description yet and the user wants to *write* one (not review accuracy of an existing one)
+- No PR exists for the current branch (Phase 1 will detect this and stop)
 
 ## Rules
 
