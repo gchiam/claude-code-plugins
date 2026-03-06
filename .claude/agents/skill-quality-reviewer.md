@@ -49,37 +49,48 @@ Flag any other fields (e.g., `compatibility`) as unrecognized.
 
 ## Output Format
 
-```
-Skill Quality Review
-════════════════════════════════════════
-Files reviewed: <N>
+Use ANSI escape codes for color. Definitions:
+- RESET  = \033[0m
+- BOLD   = \033[1m
+- GREEN  = \033[32m
+- RED    = \033[31m
+- YELLOW = \033[33m
+- CYAN   = \033[36m
+- DIM    = \033[2m
 
-── <plugin>/skills/<name>/SKILL.md ─────────────────────
-[PASS/FAIL] C1 — Description starts with "Use when..."
-[PASS/FAIL] C2 — Description free of workflow summary
-[PASS/FAIL] I1 — "When NOT to Use" section present
-[PASS/FAIL] M1 — No unrecognized frontmatter fields
+```
+<BOLD>Skill Quality Review<RESET>
+════════════════════════════════════════
+<DIM>Files reviewed: <N><RESET>
+
+<CYAN>── <plugin>/skills/<name>/SKILL.md ─────────────────────<RESET>
+<GREEN>[PASS]<RESET> C1 — Description starts with "Use when..."
+<RED>[FAIL]<RESET> C2 — Description free of workflow summary
+<GREEN>[PASS]<RESET> I1 — "When NOT to Use" section present
+<GREEN>[PASS]<RESET> M1 — No unrecognized frontmatter fields
 
 <If failures exist:>
-Issues:
-  [C1] Description starts with: "<first 60 chars of current description>"
+<YELLOW>Issues:<RESET>
+  <RED>[C1]<RESET> Description starts with: "<first 60 chars of current description>"
        Fix: Rewrite to start with "Use when..."
 
-  [C2] Workflow summary detected: "<offending phrase>"
+  <RED>[C2]<RESET> Workflow summary detected: "<offending phrase>"
        Fix: Remove workflow description; keep only triggering conditions
 
-  [I1] Missing "When NOT to Use" section
+  <YELLOW>[I1]<RESET> Missing "When NOT to Use" section
        Fix: Add section after Rules listing at least 1-2 exclusion cases
 
-  [M1] Unrecognized field: `<field-name>`
+  <DIM>[M1]<RESET> Unrecognized field: `<field-name>`
        Fix: Remove field (content already covered in skill body, or not a valid plugin field)
 
-── Summary ──────────────────────────────────────────────
-<N> files reviewed | <N> passed | <N> have issues
-Critical: <N> | Important: <N> | Minor: <N>
+<CYAN>── Summary ──────────────────────────────────────────────<RESET>
+<N> files reviewed | <GREEN><N> passed<RESET> | <RED><N> have issues<RESET>
+Critical: <RED><N><RESET> | Important: <YELLOW><N><RESET> | Minor: <DIM><N><RESET>
 ```
 
 If all files pass, output:
 ```
-✓ All <N> SKILL.md files pass quality checks.
+<GREEN>✓ All <N> SKILL.md files pass quality checks.<RESET>
 ```
+
+Render colors using actual ANSI escape sequences (e.g. `\033[32m`), not placeholder tags.
