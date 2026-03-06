@@ -182,6 +182,10 @@ fs.writeFileSync(filePath, JSON.stringify(pkg, null, 2) + '\n');
 rm -rf "$BACKUP_DIR"
 trap - ERR
 
+# Update package-lock.json for the new workspace
+echo "Updating package-lock.json..."
+npm install --silent
+
 echo ""
 echo "Plugin '$PLUGIN_NAME' created successfully!"
 echo ""

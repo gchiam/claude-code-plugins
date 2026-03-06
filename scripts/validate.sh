@@ -67,12 +67,17 @@ while IFS=' ' read -r NAME SOURCE; do
   fi
 
   # File structure checks
-  for EXPECTED in ".claude-plugin/plugin.json" "skills/$NAME/SKILL.md" "package.json"; do
+  for EXPECTED in ".claude-plugin/plugin.json" "package.json"; do
     if [ ! -f "$PLUGIN_DIR/$EXPECTED" ]; then
       echo "FAIL: Missing $EXPECTED in $NAME"
       ERRORS=$((ERRORS + 1))
     fi
   done
+  # Only check for SKILL.md if the plugin has a skills directory
+  if [ -d "$PLUGIN_DIR/skills" ] && [ ! -f "$PLUGIN_DIR/skills/$NAME/SKILL.md" ]; then
+    echo "FAIL: skills/ directory exists but missing skills/$NAME/SKILL.md in $NAME"
+    ERRORS=$((ERRORS + 1))
+  fi
 done <<< "$PLUGINS"
 
 echo ""
