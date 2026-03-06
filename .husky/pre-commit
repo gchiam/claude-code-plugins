@@ -1,1 +1,2 @@
 npm run validate
+bash scripts/check-skill-cso.sh
