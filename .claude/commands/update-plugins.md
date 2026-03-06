@@ -33,69 +33,70 @@ console.log(JSON.stringify(plugins));
 "
 ```
 
-## Step 2: Poll for a newer release
+## Step 2: Poll for updates
 
-Poll in a loop with the configured interval until a newer release is found or
+Poll in a loop with the configured interval until one or more updates are found or
 timeout is reached.
 
 On each iteration:
 
-1. Fetch the latest release tag:
+1. Fetch **all** releases (not just latest) to catch multiple updates at once:
 ```bash
-curl -sf https://api.github.com/repos/gchiam/claude-code-plugins/releases/latest \
-  | node -e "const d=require('fs').readFileSync('/dev/stdin','utf8'); console.log(JSON.parse(d).tag_name)"
+curl -sf "https://api.github.com/repos/gchiam/claude-code-plugins/releases?per_page=100" \
+  | node -e "
+const releases = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+// Deduplicate: keep only the highest version per plugin
+const latest = {};
+for (const r of releases) {
+  const match = r.tag_name.match(/^(.+)@(\d+\.\d+\.\d+)$/);
+  if (!match) continue;
+  const [, name, version] = match;
+  if (!latest[name]) latest[name] = version;
+  // releases are sorted newest-first, so first occurrence is highest
+}
+console.log(JSON.stringify(latest));
+"
 ```
 
-2. The tag format is `<plugin>@<version>` (e.g. `git-absorb@1.0.0`). Parse the
-   plugin name and version.
+2. For each plugin in the releases map, check against installed versions:
+   - If the plugin is **not** in the installed list → it's a new plugin, add to pending actions.
+   - If the plugin **is** in the installed list, compare versions using semver:
+     - If release version > installed version → add to pending actions.
 
-3. Check if an update or new install is needed:
-   - If the released plugin is **not** in the installed list → it's a new plugin, break out of the loop.
-   - If the released plugin **is** in the installed list, compare versions:
-```bash
-node -e "
-const [a, b] = process.argv.slice(1);
-const parse = v => v.split('.').map(Number);
-const [aMaj, aMin, aPatch] = parse(a);
-const [bMaj, bMin, bPatch] = parse(b);
-const newer = bMaj > aMaj || (bMaj === aMaj && bMin > aMin) || (bMaj === aMaj && bMin === aMin && bPatch > aPatch);
-process.exit(newer ? 0 : 1);
-" <installed_version> <release_version>
-```
-   If newer: break out of the loop.
+3. If **no** pending actions: print `[<timestamp>] All plugins up to date (checked <N> releases). Checking again in <interval>s...` then sleep.
 
-4. If neither condition met: print `[<timestamp>] No new release yet (latest: <tag>). Checking again in <interval>s...` then sleep.
+4. If **pending actions found**: break out of the loop.
 
-5. If timeout reached: print `Timed out after <timeout>s. No new release found.` and stop.
+5. If timeout reached: print `Timed out after <timeout>s. No updates found.` and stop.
 
 ## Step 3: Install or update
 
-Once a new or updated release is detected:
+For each pending action collected in Step 2:
 
 **If it's a version bump of an installed plugin**, show:
 ```
-New release found: <tag> (installed: <installed_version>)
+New release found: <plugin>@<version> (installed: <installed_version>)
 Running: claude plugin marketplace update gchiam-plugins
 ```
-Run:
+Run once (covers all version bumps):
 ```bash
 claude plugin marketplace update gchiam-plugins
 ```
 On success show:
 ```
-Done. gchiam-plugins updated to <version>.
+Done. gchiam-plugins updated.
 ```
 
 **If it's a net-new plugin** (not currently installed), show:
 ```
-New plugin available: <tag>
-Running: claude plugin install <plugin-name>@gchiam-plugins
+New plugin available: <plugin>@<version>
+Running: claude plugin install <plugin>@gchiam-plugins
 ```
-Run:
+Run for each new plugin:
 ```bash
-claude plugin install <plugin-name>@gchiam-plugins
+claude plugin install <plugin>@gchiam-plugins
 ```
 On success show:
 ```
-Done. <plugin-name>@<version> installed.
+Done. <plugin>@<version> installed.
 ```
