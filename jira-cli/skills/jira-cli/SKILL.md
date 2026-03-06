@@ -15,6 +15,12 @@ Use `jira-cli` to interact with Jira from the terminal. This skill teaches you
 how to pick the right commands, avoid interactive prompts that will hang, and
 parse output reliably.
 
+## When NOT to Use
+
+- `jira-cli` is not installed or initialized (`jira serverinfo` fails) — set up prerequisites first
+- The task requires Jira admin operations (project configuration, workflow editing, permission schemes) not supported by jira-cli
+- The user wants to interact with the Jira web UI directly rather than the terminal
+
 ## Prerequisites
 
 Before using jira-cli commands, verify your setup:
