@@ -1,18 +1,12 @@
 ---
 name: jira-cli
 description: >-
-  Interact with Jira from the command line to create, list, view, edit, and
-  transition issues, manage sprints and epics, and perform common Jira
-  workflows. Use this skill whenever the user mentions Jira tickets, issues,
-  tasks, stories, bugs, sprints, epics, boards, or any project management
-  activity that involves Jira. Also trigger when users say things like "my
-  tickets", "what am I working on", "create a bug", "move this to done",
-  "assign this to me", "log time", "sprint progress", or "what's in the
-  backlog". Even if the user doesn't explicitly say "Jira", if the context
-  involves issue tracking or agile project management, use this skill.
-compatibility: >-
-  Requires jira-cli (https://github.com/ankitpokhrel/jira-cli) installed and
-  configured with `jira init`. Requires JIRA_API_TOKEN environment variable.
+  Use when the user mentions Jira tickets, issues, tasks, stories, bugs, sprints,
+  epics, boards, or any project management activity involving Jira. Also trigger
+  when users say "my tickets", "what am I working on", "create a bug", "move this
+  to done", "assign this to me", "log time", "sprint progress", or "what's in the
+  backlog". Trigger even without explicit "Jira" mention if context involves issue
+  tracking or agile project management.
 ---
 
 # Jira CLI
