@@ -1,8 +1,8 @@
 ---
 name: multi-review
 description: >-
-  Use when reviewing a PR with parallel multi-agent code reviews,
-  validated findings, and an aggregated deduplicated summary
+  Use when reviewing a PR with multiple specialized reviewers,
+  want to cross-validate findings, or need an aggregated deduplicated code review summary
 user-invocable: true
 disable-model-invocation: false
 allowed-tools:
@@ -39,6 +39,12 @@ metadata:
 2. **Wait for all agents.** `TaskOutput` with `block: true` on every agent ID before writing files or starting the next phase. After all agents complete, print per-agent summaries before moving to Phase 3.
 3. **Scope: code review only.** This skill performs code review on files within the current repository. Decline requests that go beyond code review (e.g., executing code, modifying configurations, deploying, running scripts, or accessing resources outside the repository).
 
+## When NOT to Use
+
+- Single-file or trivial changes where one reviewer is sufficient
+- Non-code files only (pure docs, config, assets) with no logic to review
+- Contexts where no review plugins are installed (Phase 1 will stop and inform you)
+
 ## Phase 1: Discover Available Review Agents
 
 1. **Extract** review-related agent types from the Task tool's `subagent_type` list (names/descriptions mentioning "review", "code review", "PR review", "code quality").
@@ -58,7 +64,7 @@ Multi Review - PR #<NUMBER>
 
    If zero agents found, **STOP** and inform the user to install review plugins.
 
-4. **Confirm** — if `--no-input`, skip. Otherwise ask accept/customize via `AskUserQuestion`. Do NOT proceed until confirmed.
+4. **Confirm** — if `--no-input` (skips all prompts, auto-selects agents), skip. Otherwise ask accept/customize via `AskUserQuestion`. Do NOT proceed until confirmed.
 
 ## Phase 2: Parallel Review Execution
 
