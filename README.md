@@ -29,7 +29,7 @@ claude plugin marketplace add ./claude-code-plugins
 
 | Plugin | Description | Invocation |
 |---|---|---|
-| [multi-review](multi-review/skills/multi-review/README.md) | Runs multiple reviewers in parallel, validates findings, and produces a deduplicated summary | `/multi-review --pr 123` |
+| [multi-review](multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` |
 | [pr-desc-review](pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` |
 | [jira-cli](jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` |
 | [claude-cleanup](claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` |
