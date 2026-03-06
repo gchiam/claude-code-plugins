@@ -27,14 +27,14 @@ claude plugin marketplace add ./claude-code-plugins
 
 ## Available Plugins
 
-| Plugin | Description | Invocation |
-|---|---|---|
-| [multi-review](multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` |
-| [pr-desc-review](pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` |
-| [jira-cli](jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` |
-| [claude-cleanup](claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` |
-| [git-absorb](git-absorb/skills/git-absorb/SKILL.md) | Create fixup commits targeting the right parent using `git absorb` | `/git-absorb` |
-| [skill-cso-review](skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` |
+| Plugin | Description | Invocation | Prerequisites |
+|---|---|---|---|
+| [multi-review](multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` | — |
+| [pr-desc-review](pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` | — |
+| [jira-cli](jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` | [jira-cli](https://github.com/ankitpokhrel/jira-cli), `JIRA_API_TOKEN` |
+| [claude-cleanup](claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` | — |
+| [git-absorb](git-absorb/skills/git-absorb/SKILL.md) | Create fixup commits targeting the right parent using `git absorb` | `/git-absorb` | [git-absorb](https://github.com/tummychow/git-absorb) |
+| [skill-cso-review](skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` | — |
 
 ## Structure
 
