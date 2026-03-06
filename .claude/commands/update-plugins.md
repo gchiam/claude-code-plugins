@@ -49,7 +49,9 @@ curl -sf https://api.github.com/repos/gchiam/claude-code-plugins/releases/latest
 2. The tag format is `<plugin>@<version>` (e.g. `git-absorb@1.0.0`). Parse the
    plugin name and version.
 
-3. If the released plugin is in the installed list, compare versions:
+3. Check if an update or new install is needed:
+   - If the released plugin is **not** in the installed list → it's a new plugin, break out of the loop.
+   - If the released plugin **is** in the installed list, compare versions:
 ```bash
 node -e "
 const [a, b] = process.argv.slice(1);
@@ -60,27 +62,40 @@ const newer = bMaj > aMaj || (bMaj === aMaj && bMin > aMin) || (bMaj === aMaj &&
 process.exit(newer ? 0 : 1);
 " <installed_version> <release_version>
 ```
+   If newer: break out of the loop.
 
-4. If newer: break out of the loop.
+4. If neither condition met: print `[<timestamp>] No new release yet (latest: <tag>). Checking again in <interval>s...` then sleep.
 
-5. If not newer: print `[<timestamp>] No new release yet (latest: <tag>). Checking again in <interval>s...` then sleep.
+5. If timeout reached: print `Timed out after <timeout>s. No new release found.` and stop.
 
-6. If timeout reached: print `Timed out after <timeout>s. No new release found.` and stop.
+## Step 3: Install or update
 
-## Step 3: Run marketplace update
+Once a new or updated release is detected:
 
-Once a newer release is detected, show:
+**If it's a version bump of an installed plugin**, show:
 ```
 New release found: <tag> (installed: <installed_version>)
 Running: claude plugin marketplace update gchiam-plugins
 ```
-
 Run:
 ```bash
 claude plugin marketplace update gchiam-plugins
 ```
-
-Show the full output. On success show:
+On success show:
 ```
 Done. gchiam-plugins updated to <version>.
+```
+
+**If it's a net-new plugin** (not currently installed), show:
+```
+New plugin available: <tag>
+Running: claude plugin install <plugin-name>@gchiam-plugins
+```
+Run:
+```bash
+claude plugin install <plugin-name>@gchiam-plugins
+```
+On success show:
+```
+Done. <plugin-name>@<version> installed.
 ```
