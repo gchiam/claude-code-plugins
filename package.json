@@ -13,7 +13,8 @@
     "multi-review",
     "jira-cli",
     "pr-desc-review",
-    "claude-cleanup"
+    "claude-cleanup",
+    "git-absorb"
   ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",

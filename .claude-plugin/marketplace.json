@@ -26,6 +26,11 @@
       "name": "claude-cleanup",
       "source": "./claude-cleanup",
       "description": "Clean up stale project entries in ~/.claude.json whose directories no longer exist on disk"
+    },
+    {
+      "name": "git-absorb",
+      "source": "./git-absorb",
+      "description": "Identify and create fixup commits for staged changes using git-absorb"
     }
   ]
 }
