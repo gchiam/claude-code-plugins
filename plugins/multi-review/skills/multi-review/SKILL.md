@@ -77,7 +77,7 @@ Multi Review - <PR #NUMBER | branch | files>
 
 ## Phase 2: Parallel Review Execution
 
-Launch one agent per selected type in a single Task message with `run_in_background: true`. Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`, then **print a per-agent summary for each agent** before starting Phase 3.
+Launch one agent per selected type in a single Task message with `run_in_background: true` (boolean, not string). Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`, then **print a per-agent summary for each agent** before starting Phase 3.
 
 Per-agent summary format:
 

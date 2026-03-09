@@ -34,7 +34,7 @@ For each agent, use this prompt:
   "subagent_type": "[AGENT_TYPE]",       // from Phase 1 discovery
   "description": "[AGENT_TYPE] review",
   "prompt": "Review [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
-  "run_in_background": true
+  "run_in_background": true  // boolean, not string "true"
 }
 ```
 
