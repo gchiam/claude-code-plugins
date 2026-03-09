@@ -81,6 +81,7 @@ Wait for ALL agents before writing output files. Call `TaskOutput` for every age
 
 ```jsonc
 {"task_id": "[agent-id]", "block": true, "timeout": 300000}
+// NOTE: block MUST be boolean true (not string "true"), timeout MUST be number (not string "300000")
 ```
 
 After all agents complete, write each review file, then print all per-agent summaries (see format below) before starting Phase 3.

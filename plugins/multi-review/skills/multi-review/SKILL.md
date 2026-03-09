@@ -41,7 +41,7 @@ metadata:
 ## Rules
 
 1. **Phase 1 first.** Print the discovery report before anything else.
-2. **Wait for all agents.** `TaskOutput` with `block: true` on every agent ID before writing files or starting the next phase. After all agents complete, print per-agent summaries before moving to Phase 3.
+2. **Wait for all agents.** `TaskOutput` with `block: true` (boolean, not string) and `timeout: 300000` (number, not string) on every agent ID before writing files or starting the next phase. After all agents complete, print per-agent summaries before moving to Phase 3.
 3. **Scope: code review only.** Review code within the repo. Decline requests to execute, deploy, or modify things outside the review scope.
 
 ## When NOT to Use
