@@ -57,7 +57,7 @@ metadata:
    - Languages and file types changed
    - Change categories (new interfaces/types, error handling, test files, config, security-sensitive paths)
    - Rough scale (number of files, methods added/changed)
-3. **Filter** — exclude `multi-review`; rank remaining agents by relevance to the diff profile; pick up to `--max-reviewers` (default 3) preferring both relevance and plugin diversity. Record a short reason for each selected/skipped agent.
+3. **Filter** — `multi-review` must always go in the `[skipped]` list (never selected — it's the orchestrator); rank all other agents by relevance to the diff profile; pick up to `--max-reviewers` (default 3) preferring both relevance and plugin diversity. Record a short reason for each selected/skipped agent.
 4. **Print** the discovery report in this exact format:
 
 ```text
