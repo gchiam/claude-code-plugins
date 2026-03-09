@@ -91,19 +91,19 @@ Per-agent summary format:
     └────────────────────────────────────────
 ```
 
-See [references/phase-templates.md](references/phase-templates.md) for prompt templates, output file format, and summary parsing rules.
+Use `Read` to load `references/phase-templates.md` for prompt templates, output file format, and summary parsing rules.
 
 ## Phase 3: Parallel Validation
 
 Launch one validator per review output. Filter false positives, assess severity and confidence. Write to `.multi-reviews/validated-<short-name>.md`. Skip if `--skip-validation`.
 
-See [references/phase-templates.md](references/phase-templates.md) for validator prompt.
+Use `Read` to load `references/phase-templates.md` for the validator prompt.
 
 ## Phase 4: Aggregate Summary
 
 Deduplicate, categorize by severity, cross-reference sources, write `.multi-reviews/review-summary.md`.
 
-See [references/phase-templates.md](references/phase-templates.md) for aggregation rules.
+Use `Read` to load `references/phase-templates.md` for aggregation rules.
 
 ## Post-Review Actions
 
@@ -123,5 +123,7 @@ Carry out whichever option the user picks. For option 4, always show the comment
 
 ## References
 
-- [Phase Templates](references/phase-templates.md) — Prompt templates, output formats, aggregation rules
-- [Options & Error Handling](references/options-and-errors.md) — Input options, configuration, error handling
+Use `Read` to load these files when needed:
+
+- `references/phase-templates.md` — Prompt templates, output formats, aggregation rules
+- `references/options-and-errors.md` — Input options, configuration, error handling
