@@ -48,9 +48,9 @@ fi
 # Output systemMessage so Claude sees the issues
 MSG="CSO compliance issues found in $file_path:"
 for err in "${ERRORS[@]}"; do
-  MSG="$MSG\n  - $err"
+  MSG="$MSG"$'\n'"  - $err"
 done
-MSG="$MSG\nFix these before committing. Run /skill-cso-review:review-skills for full analysis."
+MSG="$MSG"$'\n'"Fix these before committing. Run /skill-cso-review:review-skills for full analysis."
 
 node -e "console.log(JSON.stringify({systemMessage: process.argv[1]}))" "$MSG"
 exit 0

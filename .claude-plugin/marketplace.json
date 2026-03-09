@@ -35,7 +35,7 @@
     {
       "name": "skill-cso-review",
       "source": "./plugins/skill-cso-review",
-      "description": "TODO: Add plugin description"
+      "description": "Audit SKILL.md files for CSO compliance — checks descriptions, workflow summaries, and structure"
     }
   ]
 }

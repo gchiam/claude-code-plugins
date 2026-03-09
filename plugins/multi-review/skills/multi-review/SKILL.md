@@ -1,14 +1,19 @@
 ---
 name: multi-review
 description: >-
-  Use when reviewing a PR with multiple specialized reviewers,
-  want broader coverage than a single review pass, or are working on a large or high-risk change
+  Use when reviewing a PR, branch diff, or set of changed files and want more thorough coverage
+  than a single review pass — especially for large, high-risk, or cross-cutting changes. Use this
+  skill whenever the user asks to review a PR, wants code review on a diff, or says things like
+  "review my changes", "check this branch", or "look over this PR".
 user-invocable: true
 disable-model-invocation: false
 allowed-tools:
   - Bash(mkdir -p .multi-reviews)
+  - Bash(git diff*)
+  - Bash(git log*)
+  - Bash(git show*)
   - Read(references/**)
-  - Read(/Users/gchiam/.claude/plugins/**)
+  - Read(~/.claude/plugins/**)
   - Read(.multi-reviews/**)
   - Write(.multi-reviews/**)
   - Edit(.multi-reviews/**)
@@ -37,7 +42,7 @@ metadata:
 
 1. **Phase 1 first.** Print the discovery report before anything else.
 2. **Wait for all agents.** `TaskOutput` with `block: true` on every agent ID before writing files or starting the next phase. After all agents complete, print per-agent summaries before moving to Phase 3.
-3. **Scope: code review only.** This skill performs code review on files within the current repository. Decline requests that go beyond code review (e.g., executing code, modifying configurations, deploying, running scripts, or accessing resources outside the repository).
+3. **Scope: code review only.** Review code within the repo. Decline requests to execute, deploy, or modify things outside the review scope.
 
 ## When NOT to Use
 
@@ -56,7 +61,7 @@ metadata:
 4. **Print** the discovery report in this exact format:
 
 ```text
-Multi Review - PR #<NUMBER>
+Multi Review - <PR #NUMBER | branch | files>
 ════════════════════════════════════════
 
 [✓] Phase 1: Discovered <N> review agents → selected <SEL> based on diff profile:
@@ -102,7 +107,19 @@ See [references/phase-templates.md](references/phase-templates.md) for aggregati
 
 ## Post-Review Actions
 
-Offer: view summary, generate fixes, create GitHub issues, post to PR (requires approval), re-run on specific files, or exit.
+After presenting the summary, offer next steps using `AskUserQuestion`:
+
+```
+What would you like to do next?
+  1. View full summary (.multi-reviews/review-summary.md)
+  2. Generate fixes for HIGH/CRITICAL findings
+  3. Create GitHub issues for tracked findings
+  4. Post summary comment to PR (requires your approval before posting)
+  5. Re-run on specific files only
+  6. Exit
+```
+
+Carry out whichever option the user picks. For option 4, always show the comment text and confirm before posting.
 
 ## References
 

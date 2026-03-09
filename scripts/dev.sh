@@ -21,7 +21,7 @@ if [ $# -eq 0 ]; then
   echo ""
   echo "Available plugins:"
   found=0
-  for dir in "$REPO_ROOT"/*/; do
+  for dir in "$REPO_ROOT"/plugins/*/; do
     if [ -f "$dir/.claude-plugin/plugin.json" ]; then
       echo "  $(basename "$dir")"
       found=1
