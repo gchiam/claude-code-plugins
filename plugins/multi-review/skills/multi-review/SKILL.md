@@ -48,23 +48,27 @@ metadata:
 ## Phase 1: Discover Available Review Agents
 
 1. **Extract** review-related agent types from the Task tool's `subagent_type` list (names/descriptions mentioning "review", "code review", "PR review", "code quality").
-2. **Filter** — exclude `multi-review`; pick most review-focused per plugin; select up to `--max-reviewers` (default 3) preferring diversity.
-3. **Print** the discovery report in this exact format:
+2. **Triage the diff** — before selecting agents, briefly inspect the diff to build a profile:
+   - Languages and file types changed
+   - Change categories (new interfaces/types, error handling, test files, config, security-sensitive paths)
+   - Rough scale (number of files, methods added/changed)
+3. **Filter** — exclude `multi-review`; rank remaining agents by relevance to the diff profile; pick up to `--max-reviewers` (default 3) preferring both relevance and plugin diversity. Record a short reason for each selected/skipped agent.
+4. **Print** the discovery report in this exact format:
 
 ```text
 Multi Review - PR #<NUMBER>
 ════════════════════════════════════════
 
-[✓] Phase 1: Discovered <N> review agents (max-reviewers: <MAX>):
-    ├── [selected] <agent-type>
-    ├── [selected] <agent-type>
-    ├── [selected] <agent-type>
-    └── [skipped]  <agent-type>       # one line per agent; └── for last
+[✓] Phase 1: Discovered <N> review agents → selected <SEL> based on diff profile:
+    ├── [selected] <agent-type>          # <reason, e.g. "3 new interfaces introduced">
+    ├── [selected] <agent-type>          # <reason>
+    ├── [selected] <agent-type>          # <reason>
+    └── [skipped]  <agent-type>          # <reason, e.g. "no test files changed">
 ```
 
    If zero agents found, **STOP** and inform the user to install review plugins.
 
-4. **Confirm** — if `--no-input` (skips all prompts, auto-selects agents), skip. Otherwise ask accept/customize via `AskUserQuestion`. Do NOT proceed until confirmed.
+5. **Confirm** — if `--no-input` (skips all prompts, auto-selects agents), skip. Otherwise ask accept/customize via `AskUserQuestion`. Do NOT proceed until confirmed.
 
 ## Phase 2: Parallel Review Execution
 
