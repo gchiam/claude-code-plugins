@@ -77,6 +77,8 @@ Use a short name derived from the agent type (e.g., `coderabbit` from
 
 ### Collecting Results
 
+**Pre-load deferred tools:** Before any `Task` or `TaskOutput` call, use `ToolSearch` with query `select:Task,TaskOutput`. This loads their schemas so `run_in_background: true` (boolean) and `timeout: 300000` (number) are coerced correctly instead of being rejected as strings.
+
 Wait for ALL agents before writing output files. Call `TaskOutput` for every agent (parallel calls are fine):
 
 ```jsonc
