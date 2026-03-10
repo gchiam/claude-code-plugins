@@ -35,7 +35,6 @@ but two or more give better coverage through cross-validation.
 | Plugin | Focus | Install |
 | ------ | ----- | ------- |
 | **pr-review-toolkit** | General code review with specialized sub-agents for error handling, test coverage, type design, and comment quality | `claude plugin install pr-review-toolkit@claude-plugins-official` |
-| **coderabbit** | AI-powered review with deep semantic analysis and auto-fix suggestions | `claude plugin install coderabbit@claude-plugins-official` |
 | **code-review** | Lightweight general-purpose code review | `claude plugin install code-review@claude-plugins-official` |
 | **superpowers** | Review against project plan and coding standards | `claude plugin install superpowers@claude-plugins-official` |
 
@@ -51,7 +50,6 @@ Then install the plugins:
 
 ```bash
 claude plugin install pr-review-toolkit@claude-plugins-official
-claude plugin install coderabbit@claude-plugins-official
 claude plugin install code-review@claude-plugins-official
 claude plugin install superpowers@claude-plugins-official
 ```
@@ -60,7 +58,7 @@ Or start with a minimal setup (two plugins for cross-validation):
 
 ```bash
 claude plugin install pr-review-toolkit@claude-plugins-official
-claude plugin install coderabbit@claude-plugins-official
+claude plugin install code-review@claude-plugins-official
 ```
 
 ### Verify Installation
@@ -78,7 +76,7 @@ just want to verify your setup.
 ## How It Works
 
 The skill automatically discovers review-related agent types available in your
-environment (e.g., `coderabbit:code-reviewer`, `pr-review-toolkit:code-reviewer`,
+environment (e.g., `pr-review-toolkit:code-reviewer`, `code-review:code-reviewer`,
 `superpowers:code-reviewer`) and runs them in parallel (up to `--max-reviewers`,
 default 3).
 

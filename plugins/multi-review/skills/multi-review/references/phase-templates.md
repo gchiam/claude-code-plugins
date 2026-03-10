@@ -71,8 +71,8 @@ Include in each `.multi-reviews/review-<short-name>.md`:
 ---
 ```
 
-Use a short name derived from the agent type (e.g., `coderabbit` from
-`coderabbit:code-reviewer`, `pr-toolkit` from `pr-review-toolkit:code-reviewer`,
+Use a short name derived from the agent type (e.g., `pr-toolkit` from
+`pr-review-toolkit:code-reviewer`, `code-review` from `code-review:code-reviewer`,
 `superpowers` from `superpowers:code-reviewer`).
 
 ### Collecting Results
