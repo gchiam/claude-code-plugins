@@ -4,6 +4,7 @@ description: Quickly capture raw text to today's Logseq journal with minimal fri
 argument-hint: "<text to capture>"
 allowed-tools:
   - mcp__graphthulhu__upsert_blocks
+  - mcp__graphthulhu__list_pages
   - Read
 ---
 
@@ -24,13 +25,15 @@ Follow this workflow:
 
 4. **Check `.claude/logseq.local.md`** for `default_page` or `default_tags` settings. Apply them if present.
 
-5. **Build a minimal block**:
+5. **Detect journal page format**: Call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry with `"journal": true`, and infer the date format from its name matched against today's known date. Fall back to `YYYY/MM/DD` if no journal pages are found.
+
+6. **Build a minimal block**:
    - Parent: `<content> #claude-managed #<inferred-type>\ntype:: <inferred-type>\nsource:: claude-code`
    - No child blocks (this is a quick capture — no nesting)
 
-6. **Write to today's journal** (`YYYY/MM/DD`) using `mcp__graphthulhu__upsert_blocks`
+7. **Write to today's journal** using the detected page name via `mcp__graphthulhu__upsert_blocks`
 
-7. **Confirm** with a single line: `Captured to YYYY/MM/DD`
+8. **Confirm** with a single line: `Captured to <today's journal page name>`
 
 ## Examples
 

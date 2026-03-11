@@ -1,6 +1,6 @@
 ---
 name: Logseq Capture
-description: This skill should be used when the user asks to "capture to Logseq", "save to Logseq", "add to my Logseq journal", "create a Logseq entry", "log this to Logseq", "write to Logseq", "note this in Logseq", or mentions saving notes, tasks, code snippets, or meeting notes to Logseq. Also use when the user runs /logseq:capture or /logseq:quick-capture commands.
+description: Use when the user asks to capture to Logseq, save to Logseq, add to their Logseq journal, create a Logseq entry, log something to Logseq, write to Logseq, note something in Logseq, or mentions saving notes, tasks, code snippets, or meeting notes to Logseq. Also use when the user runs /logseq:capture or /logseq:quick-capture commands.
 version: 0.1.0
 ---
 
@@ -17,10 +17,10 @@ Before capturing, verify graphthulhu MCP is connected. The `mcp__graphthulhu__*`
 All writes to Logseq use `mcp__graphthulhu__upsert_blocks`. This tool creates or updates blocks on a page.
 
 Key parameters:
-- `page` — target page name (e.g., `"Journal/2026-03-10"` or `"My Notes"`)
+- `page` — target page name (e.g., `"2026/03/10"` or `"My Notes"`)
 - `blocks` — array of block objects with `content` and optional `children`
 
-For today's journal page, use the format `"Journal/YYYY-MM-DD"` with today's date.
+For today's journal page, detect the format first (see **Detecting Journal Page Format** below).
 
 ## Block Structure
 
@@ -30,7 +30,7 @@ Logseq uses an outliner model — every piece of content is a block, and blocks 
 
 ```json
 {
-  "page": "Journal/2026-03-10",
+  "page": "2026/03/10",
   "blocks": [
     {
       "content": "Entry title or summary #claude-managed #relevant-tag\ntype:: note\nsource:: claude-code",
@@ -96,7 +96,7 @@ For structured journal pages, entries can be nested under a section heading bloc
 
 ```json
 {
-  "page": "Journal/2026-03-10",
+  "page": "2026/03/10",
   "blocks": [
     {
       "content": "## Meetings",
@@ -124,9 +124,22 @@ Common section names: `## Meetings`, `## Tasks`, `## Notes`, `## Captures`
 
 ## Date Handling
 
-- Today's journal page: `Journal/YYYY-MM-DD` (compute from current date)
+- Today's journal page: compute from current date using the detected format (see below)
 - Date references in properties: use `[[YYYY-MM-DD]]` format
 - Never hardcode dates — always compute from the current session date
+
+## Detecting Journal Page Format
+
+Logseq's journal page name format is user-configurable (e.g. `yyyy/MM/dd`, `MM-dd-yyyy`, `yyyyMMdd`). Always detect it at runtime:
+
+1. Call `mcp__graphthulhu__list_pages` with `sortBy: "modified"` and `limit: 20`
+2. Find the first entry where `"journal": true` — its `name` is an existing journal page
+3. Match the name against today's known date to determine the separator and field order
+4. Apply the same format to today's date to construct the target page name
+
+**Example:** if today is 2026-03-11 and a journal page is named `"2026/03/11"`, the format is `YYYY/MM/DD`.
+
+If no journal pages are found in the list (new graph), fall back to `YYYY/MM/DD` as the default.
 
 ## Reading Settings
 
@@ -164,6 +177,12 @@ If `upsert_blocks` fails:
 - Check if graphthulhu MCP tools are listed — if not, show setup guide
 - Check if Logseq is running with HTTP API enabled
 - Suggest running the `logseq-setup` agent for automated diagnostics
+
+## When NOT to Use
+
+- When the user wants to **read** from Logseq (use `mcp__graphthulhu__get_page`, `journal_range`, or `search` directly)
+- When the user wants to **manage or reorganize** Logseq pages (use graphthulhu tools directly)
+- When capturing to a non-Logseq note-taking system
 
 ## Additional Resources
 
