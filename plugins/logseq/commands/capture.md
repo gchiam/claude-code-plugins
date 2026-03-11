@@ -18,7 +18,7 @@ Follow this workflow:
 2. **Determine target page**:
    - If an argument was provided, use it as the page name
    - Check `.claude/logseq.local.md` for a `default_page` setting
-   - Otherwise, default to today's journal page in `Journal/YYYY-MM-DD` format
+   - Otherwise, default to today's journal page in `YYYY/MM/DD` format
 
 3. **Collect entry details** (ask the user in a single message):
    - **Entry type**: note / task / code snippet / meeting note / insight (default: note)

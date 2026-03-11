@@ -28,9 +28,9 @@ Follow this workflow:
    - Parent: `<content> #claude-managed #<inferred-type>\ntype:: <inferred-type>\nsource:: claude-code`
    - No child blocks (this is a quick capture — no nesting)
 
-6. **Write to today's journal** (`Journal/YYYY-MM-DD`) using `mcp__graphthulhu__upsert_blocks`
+6. **Write to today's journal** (`YYYY/MM/DD`) using `mcp__graphthulhu__upsert_blocks`
 
-7. **Confirm** with a single line: `Captured to Journal/YYYY-MM-DD`
+7. **Confirm** with a single line: `Captured to YYYY/MM/DD`
 
 ## Examples
 

@@ -28,9 +28,9 @@ Follow this workflow:
    - First child: full response content (truncate to first 500 words if very long, add note if truncated)
    - If response contained code blocks, preserve them as children with the code fenced
 
-6. **Write to today's journal** (`Journal/YYYY-MM-DD`) using `mcp__graphthulhu__upsert_blocks`
+6. **Write to today's journal** (`YYYY/MM/DD`) using `mcp__graphthulhu__upsert_blocks`
 
-7. **Confirm** with: `Captured to Journal/YYYY-MM-DD — "<title>"`
+7. **Confirm** with: `Captured to YYYY/MM/DD — "<title>"`
 
 ## Examples
 
