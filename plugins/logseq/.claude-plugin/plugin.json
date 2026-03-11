@@ -1,6 +1,6 @@
 {
   "name": "logseq",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Integrate Claude Code with Logseq via the graphthulhu MCP server. Capture notes, tasks, and insights directly into your Logseq graph.",
   "author": {
     "name": "gchiam"
