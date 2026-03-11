@@ -24,7 +24,7 @@ Follow this workflow:
 
 4. **Check `.claude/logseq.local.md`** for `default_page` or `default_tags`. Apply if present.
 
-5. **Detect journal page format**: Call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry with `"journal": true`, and infer the date format from its name matched against today's known date. Fall back to `YYYY/MM/DD` if no journal pages are found.
+5. **Detect journal page format**: Check `.claude/logseq.local.md` for a `journal_format` setting and use it if present. Otherwise call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry with `"journal": true`, and infer the date format from its name matched against today's known date. Fall back to `YYYY/MM/DD` if no journal pages are found.
 
 6. **Build the block**:
    - Parent: `<title> #claude-managed #note\ntype:: note\nsource:: claude-code`

@@ -83,6 +83,7 @@ Create `.claude/logseq.local.md` in your project to customize plugin behavior:
 default_page: "Journal"
 api_url: "http://127.0.0.1:12315"
 default_tags: ["work", "project-alpha"]
+journal_format: "YYYY/MM/DD"
 ---
 ```
 
@@ -90,9 +91,10 @@ default_tags: ["work", "project-alpha"]
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| `default_page` | Today's journal (`Journal/YYYY-MM-DD`) | Override default capture target |
+| `default_page` | Today's journal (auto-detected format) | Override default capture target |
 | `api_url` | `http://127.0.0.1:12315` | Custom Logseq API URL |
 | `default_tags` | `[]` | Additional tags added to every entry |
+| `journal_format` | auto-detected | Journal page name format. Use Logseq's format tokens: `YYYY` `MM` `DD` with your preferred separators (e.g. `YYYY/MM/DD`, `MM-dd-yyyy`, `yyyyMMdd`). Set this to skip auto-detection. |
 
 Add `.claude/*.local.md` to `.gitignore` to keep personal settings out of version control.
 

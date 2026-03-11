@@ -130,21 +130,19 @@ Common section names: `## Meetings`, `## Tasks`, `## Notes`, `## Captures`
 
 ## Detecting Journal Page Format
 
-Logseq's journal page name format is user-configurable (e.g. `yyyy/MM/dd`, `MM-dd-yyyy`, `yyyyMMdd`). Always detect it at runtime:
+Logseq's journal page name format is user-configurable (e.g. `yyyy/MM/dd`, `MM-dd-yyyy`, `yyyyMMdd`). Resolve it using this priority order:
 
-1. Call `mcp__graphthulhu__list_pages` with `sortBy: "modified"` and `limit: 20`
-2. Find the first entry where `"journal": true` — its `name` is an existing journal page
-3. Match the name against today's known date to determine the separator and field order
-4. Apply the same format to today's date to construct the target page name
+1. **Explicit setting** — check `.claude/logseq.local.md` for `journal_format`. If present, use it directly.
+2. **Auto-detect** — call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry where `"journal": true`, and match its name against today's known date to infer the format.
+3. **Fallback** — if no journal pages are found (new graph), use `YYYY/MM/DD`.
 
 **Example:** if today is 2026-03-11 and a journal page is named `"2026/03/11"`, the format is `YYYY/MM/DD`.
-
-If no journal pages are found in the list (new graph), fall back to `YYYY/MM/DD` as the default.
 
 ## Reading Settings
 
 Before capturing, check if a settings file exists at `.claude/logseq.local.md`. If present, parse it for:
 - `default_page` — override the default target page
+- `journal_format` — explicit journal page name format (e.g. `YYYY/MM/DD`, `MM-dd-yyyy`); skips auto-detection when set
 - `api_url` — custom Logseq API URL (if not using default)
 
 See `references/setup-guide.md` for settings file format.
