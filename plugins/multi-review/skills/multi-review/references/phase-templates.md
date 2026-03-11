@@ -79,10 +79,13 @@ Use a short name derived from the agent type (e.g., `pr-toolkit` from
 
 **Pre-load deferred tools:** Before any `Task` or `TaskOutput` call, use `ToolSearch` with query `select:Task,TaskOutput`. This loads their schemas so `run_in_background: true` (boolean) and `timeout: 300000` (number) are coerced correctly instead of being rejected as strings.
 
-Wait for ALL agents before writing output files. Call `TaskOutput` for every agent (parallel calls are fine):
+**Capture task IDs from Task responses:** Each `Task` call returns a response object with an `id` field (a UUID like `"abc12345-1234-..."`). You MUST use that exact `id` value in the subsequent `TaskOutput` call. Do NOT derive or guess the ID from the agent description, subagent_type, or any other source.
+
+Wait for ALL agents before writing output files. Call `TaskOutput` for every agent using the `id` returned by their `Task` call (parallel calls are fine):
 
 ```jsonc
-{"task_id": "[agent-id]", "block": true, "timeout": 300000}
+{"task_id": "<id from Task response>", "block": true, "timeout": 300000}
+// NOTE: task_id MUST be the exact UUID returned by Task (e.g. "abc12345-1234-5678-abcd-000000000000")
 // NOTE: block MUST be boolean true (not string "true"), timeout MUST be number (not string "300000")
 ```
 

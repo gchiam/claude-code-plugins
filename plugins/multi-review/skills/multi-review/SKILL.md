@@ -79,7 +79,7 @@ Multi Review - <PR #NUMBER | branch | files>
 
 **Pre-load deferred tools first:** Call `ToolSearch` with `select:Task,TaskOutput` before launching any agents. This loads their JSON schemas so parameter types (boolean, number) are coerced correctly — without this, `run_in_background: true` and `timeout: 300000` are treated as strings and fail validation.
 
-Launch one agent per selected type in a single Task message with `run_in_background: true` (boolean, not string). Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`, then **print a per-agent summary for each agent** before starting Phase 3.
+Launch one agent per selected type in a single Task message with `run_in_background: true` (boolean, not string). Each `Task` call returns a response with an `id` field — capture that exact UUID and use it in `TaskOutput`. **Never derive or guess task IDs.** Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`, then **print a per-agent summary for each agent** before starting Phase 3.
 
 Per-agent summary format:
 
