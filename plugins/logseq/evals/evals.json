@@ -1,0 +1,44 @@
+{
+  "skill_name": "logseq-capture",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "quick capture: TODO follow up with design team about the button colors before the sprint ends",
+      "expected_output": "A upsert_blocks JSON payload for a task entry on today's journal page with TODO prefix, #claude-managed #task tags, type:: task property",
+      "files": [],
+      "assertions": [
+        {"id": "has-claude-managed-tag", "description": "Parent block content contains #claude-managed"},
+        {"id": "has-task-type", "description": "Block contains type:: task property"},
+        {"id": "preserves-todo-prefix", "description": "Content starts with or includes TODO prefix"},
+        {"id": "targets-todays-journal", "description": "Page is Journal/2026-03-10"},
+        {"id": "no-unnecessary-nesting", "description": "Quick capture has no child blocks (lean structure)"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "save this to logseq — we decided to use debounce with 300ms delay for the search input to avoid hammering the API",
+      "expected_output": "A upsert_blocks JSON payload for a note or insight entry on today's journal page with #claude-managed tags, a type:: property, and source:: claude-code",
+      "files": [],
+      "assertions": [
+        {"id": "has-claude-managed-tag", "description": "Parent block content contains #claude-managed"},
+        {"id": "has-type-property", "description": "Block contains a type:: property (any valid type: note, insight, task, code, meeting)"},
+        {"id": "has-source-property", "description": "Block contains source:: claude-code property"},
+        {"id": "captures-key-detail", "description": "Content references debounce and/or 300ms"},
+        {"id": "targets-todays-journal", "description": "Page is Journal/2026-03-10"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "add a meeting note to my journal: had a 1:1 with my manager, we talked about Q2 goals and she wants me to lead the onboarding revamp",
+      "expected_output": "A upsert_blocks JSON payload for a meeting entry on today's journal page with #claude-managed #meeting tags, type:: meeting, date property, and child blocks for discussion points",
+      "files": [],
+      "assertions": [
+        {"id": "has-claude-managed-tag", "description": "Parent block content contains #claude-managed"},
+        {"id": "has-meeting-type", "description": "Block contains type:: meeting property"},
+        {"id": "has-date-property", "description": "Block contains date:: property"},
+        {"id": "uses-child-blocks", "description": "Has at least one child block for discussion points"},
+        {"id": "targets-todays-journal", "description": "Page is Journal/2026-03-10"}
+      ]
+    }
+  ]
+}

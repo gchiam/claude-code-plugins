@@ -1,0 +1,6 @@
+{
+  "name": "logseq",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Logseq integration via graphthulhu MCP server"
+}

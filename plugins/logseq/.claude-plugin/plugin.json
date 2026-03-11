@@ -1,0 +1,9 @@
+{
+  "name": "logseq",
+  "version": "0.1.0",
+  "description": "Integrate Claude Code with Logseq via the graphthulhu MCP server. Capture notes, tasks, and insights directly into your Logseq graph.",
+  "author": {
+    "name": "gchiam"
+  },
+  "keywords": ["logseq", "notes", "pkm", "knowledge-management", "graphthulhu"]
+}

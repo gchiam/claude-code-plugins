@@ -1,0 +1,17 @@
+{
+  "description": "SessionStart hook that checks graphthulhu installation and Logseq API availability, showing inline setup instructions if needed",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/check-setup.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

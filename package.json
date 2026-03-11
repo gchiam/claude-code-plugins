@@ -15,7 +15,8 @@
     "plugins/pr-desc-review",
     "plugins/claude-cleanup",
     "plugins/git-absorb",
-    "plugins/skill-cso-review"
+    "plugins/skill-cso-review",
+    "plugins/logseq"
   ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",

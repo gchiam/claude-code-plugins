@@ -36,6 +36,11 @@
       "name": "skill-cso-review",
       "source": "./plugins/skill-cso-review",
       "description": "Audit SKILL.md files for CSO compliance — checks descriptions, workflow summaries, and structure"
+    },
+    {
+      "name": "logseq",
+      "source": "./plugins/logseq",
+      "description": "Capture notes, tasks, and insights from Claude conversations directly into Logseq via the graphthulhu MCP server"
     }
   ]
 }
