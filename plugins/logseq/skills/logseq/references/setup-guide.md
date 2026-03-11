@@ -76,7 +76,7 @@ Or add them to your shell profile (`~/.zshrc` or `~/.bashrc`).
 
 ## Plugin Settings File
 
-Create `.claude/logseq.local.md` in your project to customize plugin behavior:
+Create `.claude/logseq.local.md` in your project (or `~/.claude/logseq.local.md` for global defaults) to customize plugin behavior. Project-level settings take precedence over global ones.
 
 ```markdown
 ---

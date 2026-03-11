@@ -17,8 +17,8 @@ Follow this workflow:
 
 2. **Determine target page**:
    - If an argument was provided, use it as the page name
-   - Check `.claude/logseq.local.md` for a `default_page` setting
-   - Otherwise, resolve journal page format: check `.claude/logseq.local.md` for `journal_format` and use it if present; else call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry with `"journal": true`, infer the format from its name matched against today's known date; fall back to `YYYY/MM/DD` if none found.
+   - Check `.claude/logseq.local.md` then `~/.claude/logseq.local.md` for a `default_page` setting (project takes precedence)
+   - Otherwise, resolve journal page format: check `.claude/logseq.local.md` then `~/.claude/logseq.local.md` for `journal_format` and use it if present; else call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry with `"journal": true`, infer the format from its name matched against today's known date; fall back to `YYYY/MM/DD` if none found.
 
 3. **Collect entry details** (ask the user in a single message):
    - **Entry type**: note / task / code snippet / meeting note / insight (default: note)

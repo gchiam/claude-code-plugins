@@ -132,15 +132,16 @@ Common section names: `## Meetings`, `## Tasks`, `## Notes`, `## Captures`
 
 Logseq's journal page name format is user-configurable (e.g. `yyyy/MM/dd`, `MM-dd-yyyy`, `yyyyMMdd`). Resolve it using this priority order:
 
-1. **Explicit setting** — check `.claude/logseq.local.md` for `journal_format`. If present, use it directly.
-2. **Auto-detect** — call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry where `"journal": true`, and match its name against today's known date to infer the format.
-3. **Fallback** — if no journal pages are found (new graph), use `YYYY/MM/DD`.
+1. **Project setting** — check `.claude/logseq.local.md` for `journal_format`. If present, use it directly.
+2. **Global setting** — check `~/.claude/logseq.local.md` for `journal_format`. If present, use it directly.
+3. **Auto-detect** — call `mcp__graphthulhu__list_pages` (sortBy: modified, limit: 20), find the first entry where `"journal": true`, and match its name against today's known date to infer the format.
+4. **Fallback** — if no journal pages are found (new graph), use `YYYY/MM/DD`.
 
 **Example:** if today is 2026-03-11 and a journal page is named `"2026/03/11"`, the format is `YYYY/MM/DD`.
 
 ## Reading Settings
 
-Before capturing, check if a settings file exists at `.claude/logseq.local.md`. If present, parse it for:
+Before capturing, check for settings in order: `.claude/logseq.local.md` (project-level) then `~/.claude/logseq.local.md` (global). Project settings take precedence. Parse for:
 - `default_page` — override the default target page
 - `journal_format` — explicit journal page name format (e.g. `YYYY/MM/DD`, `MM-dd-yyyy`); skips auto-detection when set
 - `api_url` — custom Logseq API URL (if not using default)
