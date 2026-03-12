@@ -183,6 +183,68 @@ If `upsert_blocks` fails:
 - When the user wants to **manage or reorganize** Logseq pages (use graphthulhu tools directly)
 - When capturing to a non-Logseq note-taking system
 
+## Work Tracking Conventions
+
+Commands that implement work tracking use the following conventions. Both `/logseq:work-log` and `/logseq:new-work-page` delegate to these definitions.
+
+### Work Log Sections
+
+Work-log entries are appended to today's journal under these section headings (created on demand if absent):
+
+- `## In Progress` — active work items
+- `## Done` — completed items
+- `## Blocked` — items waiting on something
+- `## Next` — planned upcoming work
+
+Section headings are created as parent blocks; work items are their children.
+
+### Work Log Entry Format
+
+```
+[[JIRA/PROJ-123]] description of work #claude-managed #work-log [HH:MM]
+```
+
+- Tags come immediately after the description, before the timestamp
+- Timestamp `[HH:MM]` (local time, 24h) is appended at the end
+- Page references use `[[double brackets]]` for Logseq auto-linking
+- No `type::` or `source::` properties — high-frequency journal entries use the `#work-log` tag as the type signal
+
+### Work Page Naming
+
+| Type | Argument | Page name |
+|------|----------|-----------|
+| JIRA ticket | `jira PROJ-123` | `JIRA/PROJ-123` |
+| Pull Request | `pr myrepo 42` | `PR/myrepo/42` |
+| Repo/service | `repo my-service` | `Repo/my-service` |
+
+### Work Page Properties
+
+**JIRA page:**
+```
+JIRA/PROJ-123 #claude-managed #jira
+status:: in-progress
+sprint::
+repo::
+prs::
+```
+
+**PR page:**
+```
+PR/myrepo/42 #claude-managed #pr
+status:: open
+jira::
+repo:: [[Repo/myrepo]]
+opened:: [[YYYY-MM-DD]]
+merged::
+```
+
+**Repo page:**
+```
+Repo/my-service #claude-managed #repo
+team::
+stack::
+```
+
 ## Additional Resources
 
 - **`references/setup-guide.md`** — graphthulhu installation, Logseq API setup, settings file format
