@@ -189,6 +189,8 @@ Commands that implement work tracking use the following conventions. Both `/logs
 
 ### Work Log Sections
 
+Work-log commands write to today's journal page. Use the journal format detection procedure in **Detecting Journal Page Format** to determine the page name.
+
 Work-log entries are appended to today's journal under these section headings (created on demand if absent):
 
 - `## In Progress` — active work items
@@ -197,6 +199,8 @@ Work-log entries are appended to today's journal under these section headings (c
 - `## Next` — planned upcoming work
 
 Section headings are created as parent blocks; work items are their children.
+
+To check whether a section heading exists before writing, call `mcp__graphthulhu__get_page` on today's journal page and scan the returned blocks for a block whose content starts with the heading text (e.g. `## In Progress`).
 
 ### Work Log Entry Format
 
@@ -218,6 +222,8 @@ Section headings are created as parent blocks; work items are their children.
 | Repo/service | `repo my-service` | `Repo/my-service` |
 
 ### Work Page Properties
+
+In each template below, the first line is the `content` of the first block (which also serves as the page title). Properties follow inline on the same block content string, separated by newlines.
 
 **JIRA page:**
 ```
@@ -244,6 +250,24 @@ Repo/my-service #claude-managed #repo
 team::
 stack::
 ```
+
+### Command Workflows
+
+**`/logseq:work-log`:**
+1. Check MCP availability
+2. Detect journal page format (see **Detecting Journal Page Format**)
+3. Read today's journal with `get_page`; note which section headings already exist
+4. Prompt the user for new items (single message)
+5. For each item: format as `<description> #claude-managed #work-log [HH:MM]`; append under the correct section (create heading + child in one call if section is absent)
+6. Confirm what was appended
+
+**`/logseq:new-work-page`:**
+1. Check MCP availability
+2. Resolve page type (`jira`/`pr`/`repo`) and identifier from args or prompt
+3. Derive page name using Work Page Naming table
+4. Call `get_page` to check if page exists; if so, warn and stop
+5. Write page with type-specific template using `upsert_blocks`
+6. Confirm with the created page name
 
 ## Additional Resources
 
