@@ -135,3 +135,77 @@ Batch multiple independent entries in a single `upsert_blocks` call:
   ]
 }
 ```
+
+## Work Log Entry (section exists)
+
+Append a work item under an existing `## In Progress` section:
+
+```json
+{
+  "page": "2026/03/11",
+  "blocks": [
+    {
+      "content": "[[JIRA/PROJ-123]] investigating auth bug #claude-managed #work-log [09:32]"
+    }
+  ]
+}
+```
+
+Note: when the section already exists, the item is appended as a child of that heading block. The `page` and `blocks` shown here represent the child block payload; the actual call uses the section block as parent.
+
+## Work Log Entry (section does not exist)
+
+Create `## In Progress` heading and first work item in a single call:
+
+```json
+{
+  "page": "2026/03/11",
+  "blocks": [
+    {
+      "content": "## In Progress",
+      "children": [
+        { "content": "[[JIRA/PROJ-123]] investigating auth bug #claude-managed #work-log [09:32]" }
+      ]
+    }
+  ]
+}
+```
+
+## Work Page: JIRA ticket
+
+```json
+{
+  "page": "JIRA/PROJ-123",
+  "blocks": [
+    {
+      "content": "JIRA/PROJ-123 #claude-managed #jira\nstatus:: in-progress\nsprint::\nrepo::\nprs::"
+    }
+  ]
+}
+```
+
+## Work Page: Pull Request
+
+```json
+{
+  "page": "PR/myrepo/42",
+  "blocks": [
+    {
+      "content": "PR/myrepo/42 #claude-managed #pr\nstatus:: open\njira::\nrepo:: [[Repo/myrepo]]\nopened:: [[2026-03-12]]\nmerged::"
+    }
+  ]
+}
+```
+
+## Work Page: Repo/Service
+
+```json
+{
+  "page": "Repo/my-service",
+  "blocks": [
+    {
+      "content": "Repo/my-service #claude-managed #repo\nteam::\nstack::"
+    }
+  ]
+}
+```
