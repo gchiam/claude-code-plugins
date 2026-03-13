@@ -19,7 +19,7 @@ Follow the Work Tracking Conventions in the logseq SKILL.md for page naming and 
    Then stop.
 
 2. **Resolve type and identifier**:
-   - If arguments were provided, parse them: first token is type (`jira`, `pr`, `repo`), remaining tokens are the identifier
+   - If arguments were provided, parse them: first token is type (`jira`, `pr`, `repo`), remaining tokens are the identifier. If the type is not one of `jira`, `pr`, or `repo`, show an error and stop: > Unknown page type. Use `jira`, `pr`, or `repo`.
    - If no arguments, prompt: "What type of page? (jira / pr / repo) and what is the identifier?"
 
 3. **Derive page name** using Work Tracking Conventions in SKILL.md:
