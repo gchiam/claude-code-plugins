@@ -92,6 +92,8 @@
         {"id": "has-claude-managed-tag", "description": "Block content contains #claude-managed"},
         {"id": "has-jira-tag", "description": "Block content contains #jira"},
         {"id": "has-status-property", "description": "Block content contains status:: property"},
+        {"id": "has-sprint-property", "description": "Block content contains sprint:: property"},
+        {"id": "has-repo-property", "description": "Block content contains repo:: property"},
         {"id": "has-prs-property", "description": "Block content contains prs:: property"}
       ]
     },
@@ -105,7 +107,9 @@
         {"id": "has-claude-managed-tag", "description": "Block content contains #claude-managed"},
         {"id": "has-pr-tag", "description": "Block content contains #pr"},
         {"id": "has-repo-reference", "description": "Block content contains [[Repo/myrepo]] page reference"},
-        {"id": "has-opened-property", "description": "Block content contains opened:: property with today's date"}
+        {"id": "has-opened-property", "description": "Block content contains opened:: property with today's date"},
+        {"id": "has-status-open", "description": "Block content contains status:: open"},
+        {"id": "has-merged-property", "description": "Block content contains merged:: property"}
       ]
     },
     {
@@ -119,6 +123,28 @@
         {"id": "has-repo-tag", "description": "Block content contains #repo"},
         {"id": "has-team-property", "description": "Block content contains team:: property"},
         {"id": "has-stack-property", "description": "Block content contains stack:: property"}
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "/logseq:new-work-page jira PROJ-123 (the page JIRA/PROJ-123 already exists in the graph)",
+      "expected_output": "A warning message telling the user the page already exists and to manually clear or rename it. No upsert_blocks call is made.",
+      "files": [],
+      "assertions": [
+        {"id": "no-upsert-call", "description": "upsert_blocks is NOT called; the command stops after the get_page check"},
+        {"id": "shows-warning", "description": "Response contains a warning message that the page already exists"},
+        {"id": "suggests-manual-action", "description": "Response tells the user to manually clear or rename the page in Logseq"}
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "/logseq:new-work-page epic TEAM-1",
+      "expected_output": "An error message saying the type 'epic' is not recognised. No upsert_blocks call is made.",
+      "files": [],
+      "assertions": [
+        {"id": "no-upsert-call", "description": "upsert_blocks is NOT called; the command stops at the type validation step"},
+        {"id": "shows-error", "description": "Response contains an error message about the unknown page type"},
+        {"id": "lists-valid-types", "description": "Response mentions the valid types: jira, pr, repo"}
       ]
     }
   ]
