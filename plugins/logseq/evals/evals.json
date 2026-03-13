@@ -51,7 +51,8 @@
         {"id": "has-timestamp", "description": "Block content contains a [HH:MM] timestamp in square brackets"},
         {"id": "has-page-reference", "description": "Block content contains [[JIRA/PROJ-456]] double-bracket reference"},
         {"id": "targets-todays-journal", "description": "upsert_blocks targets today's journal page"},
-        {"id": "under-in-progress-section", "description": "Block is placed under ## In Progress heading (either as child or with section created)"}
+        {"id": "under-in-progress-section", "description": "Block is placed under ## In Progress heading (either as child or with section created)"},
+        {"id": "no-destructive-tools", "description": "No delete_block or bulk-update tool calls are made; only upsert_blocks is permitted"}
       ]
     },
     {
@@ -64,11 +65,12 @@
         {"id": "has-work-log-tag", "description": "Block content contains #work-log"},
         {"id": "has-timestamp", "description": "Block content contains a [HH:MM] timestamp in square brackets"},
         {"id": "targets-todays-journal", "description": "upsert_blocks targets today's journal page"},
-        {"id": "under-done-section", "description": "Block is placed under ## Done heading"}
+        {"id": "under-done-section", "description": "Block is placed under ## Done heading"},
+        {"id": "no-destructive-tools", "description": "No delete_block or bulk-update tool calls are made; only upsert_blocks is permitted"}
       ]
     },
     {
-      "id": 9,
+      "id": 6,
       "prompt": "/logseq:work-log — add blocked: [[JIRA/PROJ-999]] waiting for design review (assume today's journal already has an In Progress section with one entry)",
       "expected_output": "A upsert_blocks call that appends a new block under ## Blocked, without modifying or deleting any existing blocks. No delete_block or update_block calls are made.",
       "files": [],
@@ -77,7 +79,7 @@
         {"id": "has-work-log-tag", "description": "Block content contains #work-log"},
         {"id": "has-timestamp", "description": "Block content contains a [HH:MM] timestamp"},
         {"id": "under-blocked-section", "description": "Block is placed under ## Blocked heading"},
-        {"id": "no-destructive-tools", "description": "No delete_block or bulk-update tool calls are made — only upsert_blocks"}
+        {"id": "no-destructive-tools", "description": "No delete_block or bulk-update tool calls are made; only upsert_blocks is permitted"}
       ]
     }
   ]
