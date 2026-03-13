@@ -81,6 +81,45 @@
         {"id": "under-blocked-section", "description": "Block is placed under ## Blocked heading"},
         {"id": "no-destructive-tools", "description": "No delete_block or bulk-update tool calls are made; only upsert_blocks is permitted"}
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "/logseq:new-work-page jira PROJ-789",
+      "expected_output": "A upsert_blocks call creating the page JIRA/PROJ-789 with status:: in-progress, sprint::, repo::, prs:: properties and #claude-managed #jira tags",
+      "files": [],
+      "assertions": [
+        {"id": "correct-page-name", "description": "upsert_blocks targets page JIRA/PROJ-789"},
+        {"id": "has-claude-managed-tag", "description": "Block content contains #claude-managed"},
+        {"id": "has-jira-tag", "description": "Block content contains #jira"},
+        {"id": "has-status-property", "description": "Block content contains status:: property"},
+        {"id": "has-prs-property", "description": "Block content contains prs:: property"}
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "/logseq:new-work-page pr myrepo 99",
+      "expected_output": "A upsert_blocks call creating the page PR/myrepo/99 with status:: open, jira::, repo:: [[Repo/myrepo]], opened::, merged:: properties and #claude-managed #pr tags",
+      "files": [],
+      "assertions": [
+        {"id": "correct-page-name", "description": "upsert_blocks targets page PR/myrepo/99"},
+        {"id": "has-claude-managed-tag", "description": "Block content contains #claude-managed"},
+        {"id": "has-pr-tag", "description": "Block content contains #pr"},
+        {"id": "has-repo-reference", "description": "Block content contains [[Repo/myrepo]] page reference"},
+        {"id": "has-opened-property", "description": "Block content contains opened:: property with today's date"}
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "/logseq:new-work-page repo payment-service",
+      "expected_output": "A upsert_blocks call creating the page Repo/payment-service with team:: and stack:: properties and #claude-managed #repo tags",
+      "files": [],
+      "assertions": [
+        {"id": "correct-page-name", "description": "upsert_blocks targets page Repo/payment-service"},
+        {"id": "has-claude-managed-tag", "description": "Block content contains #claude-managed"},
+        {"id": "has-repo-tag", "description": "Block content contains #repo"},
+        {"id": "has-team-property", "description": "Block content contains team:: property"},
+        {"id": "has-stack-property", "description": "Block content contains stack:: property"}
+      ]
     }
   ]
 }
