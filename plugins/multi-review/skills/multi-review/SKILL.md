@@ -44,7 +44,7 @@ metadata:
 1. **Pre-load TaskOutput schema.** Call `ToolSearch` with query `select:Task,TaskOutput` as your very first action — before Phase 1, before anything else. Without this, the `TaskOutput` parameter schema is unavailable, so `block` and `timeout` may be serialized as strings instead of their required types, causing `TaskOutput` to return immediately with `"No task output available"` and all fallback steps to yield empty results, causing the agent's findings to be lost entirely.
 2. **Phase 1 first.** Print the discovery report before launching agents.
 3. **Findings come from files, with fallback to TaskOutput.** Agents are instructed to write findings to `.multi-reviews/review-<short-name>.md`. If a file is missing or empty after an agent completes, use the `TaskOutput` content as the fallback and write it to the file (prepending the standard header). If both the file and `TaskOutput` content are empty or contain a failure string, warn the user and skip this agent. See `references/phase-templates.md` for the full fallback chain.
-4. **Wait for all agents.** Call `TaskOutput` on every agent ID (see `references/phase-templates.md` for exact call format). After all return, collect findings via the fallback chain, apply normalization, and print per-agent summaries before moving to Phase 3.
+4. **Launch and wait in the same turn.** Issue all `Task` and `TaskOutput` calls in one response — task IDs expire shortly after completion and are gone by the next turn. After all `TaskOutput` calls return, collect findings via the fallback chain, apply normalization, and print per-agent summaries before moving to Phase 3.
 5. **Scope: code review only.** Review code within the repo. Decline requests to execute, deploy, or modify things outside the review scope.
 
 ## When NOT to Use
@@ -82,7 +82,7 @@ Multi Review - <PR #NUMBER | branch | files>
 
 Rule 1 must have been called before this phase for `TaskOutput` type coercion to work correctly. If `TaskOutput` returns `"No task output available"`, Rule 1 was skipped — reload `ToolSearch` with `select:Task,TaskOutput` and retry.
 
-Launch one agent per selected type in a single Task message with `run_in_background: true`. Capture the `id` returned by each `Task` call — do not derive or guess it. Wait for all via `TaskOutput`, collect findings via the fallback chain, apply normalization, and **print a per-agent summary** before starting Phase 3. See `references/phase-templates.md` for prompt templates and the full `TaskOutput` call format.
+Launch all agents and issue all `TaskOutput` calls **in the same response turn** — this is critical. Task IDs expire shortly after an agent completes; if `TaskOutput` is called in a later turn, the IDs may already be gone. Capture the `id` returned by each `Task` call and pass it directly to a `TaskOutput` call in the same message. After all `TaskOutput` calls return, collect findings via the fallback chain, apply normalization, and **print a per-agent summary** before starting Phase 3. See `references/phase-templates.md` for prompt templates and the full call format.
 
 Per-agent summary format:
 

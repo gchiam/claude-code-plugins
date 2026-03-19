@@ -78,7 +78,19 @@ Short name is derived from the agent type: `pr-toolkit` from `pr-review-toolkit:
 
 ### Collecting Results
 
-Call `TaskOutput` for every agent in parallel using the exact `id` returned by their `Task` call:
+**Launch agents and call TaskOutput in the same message turn.** Task IDs expire shortly after an agent completes — if you launch all agents first and then call TaskOutput in a subsequent message, the IDs may already be gone. To prevent this, issue all `Task` and `TaskOutput` calls together in one response, like this:
+
+```
+Turn N (single response):
+  Task(agent-A, run_in_background: true)   → id-A
+  Task(agent-B, run_in_background: true)   → id-B
+  Task(agent-C, run_in_background: true)   → id-C
+  TaskOutput(id-A, block: true, timeout: 300000)
+  TaskOutput(id-B, block: true, timeout: 300000)
+  TaskOutput(id-C, block: true, timeout: 300000)
+```
+
+The `TaskOutput` calls block until each agent finishes. Because they are registered in the same turn as the `Task` calls, the IDs are still valid when the blocking waits resolve.
 
 ```jsonc
 {"task_id": "<exact UUID from Task response>", "block": true, "timeout": 300000}
