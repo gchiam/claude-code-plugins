@@ -22,19 +22,21 @@ Otherwise, use a two-step confirmation:
 
 Before launching any agents, verify ALL of the following:
 
+- [ ] `ToolSearch` with `select:Task,TaskOutput` was called (Rule 1) — if not, Rule 1 was skipped in error; recover by calling it now before proceeding
 - [ ] User has confirmed the Phase 1 agent selection (or `--no-input` is set)
 - [ ] You are using ONLY the confirmed/auto-selected agent types from Phase 1
+- [ ] `.multi-reviews/` directory exists (create with `mkdir -p .multi-reviews` if not)
 
 ### Agent prompt
 
-For each agent, use this prompt:
+For each agent, use this prompt (substitute `[AGENT_TYPE]`, `[TARGET]`, `[SHORT_NAME]`, `[SCOPE]`, `[FILE_LIST]`):
 
 ```jsonc
 {
-  "subagent_type": "[AGENT_TYPE]",       // from Phase 1 discovery
+  "subagent_type": "[AGENT_TYPE]",
   "description": "[AGENT_TYPE] review",
-  "prompt": "Review [TARGET]. Do NOT post comments to PR. Return all findings as markdown.",
-  "run_in_background": true  // boolean, not string "true"
+  "prompt": "<full prompt below>",
+  "run_in_background": true  // MUST be boolean true (not string "true")
 }
 ```
 
@@ -43,53 +45,54 @@ Full prompt per agent:
 ```
 Review [TARGET].
 
+OUTPUT REQUIREMENT (most important): Write your complete findings to
+.multi-reviews/review-[SHORT_NAME].md using the Write tool. Do NOT return findings
+as text output — the file is how the orchestrator collects your results.
+
 CRITICAL INSTRUCTIONS:
-1. Do NOT post any comments to the PR
-2. Do NOT use `gh pr comment` or any GitHub posting commands
-3. Capture ALL review output including issues, severity levels, and locations
-4. Format output as structured markdown
-5. Return the complete review findings
+1. Write findings to .multi-reviews/review-[SHORT_NAME].md (see above)
+2. Do NOT post any comments to the PR
+3. Do NOT use `gh pr comment` or any GitHub posting commands
+4. Capture ALL review output including issues, severity levels, and locations
+5. Format output as structured markdown
+
+The output file must begin with this exact header:
+
+# Code Review Results
+
+**Source:** [AGENT_TYPE]
+**Target:** [TARGET]
+**Date:** [YYYY-MM-DD HH:mm:ss]
+**Scope:** [SCOPE]
+**Files reviewed:** [N]
+
+---
 
 Configuration:
 - Review scope: [diff-only | full-context]
-- Files: [file list if specified]
+- Files: [FILE_LIST or "all changed files"]
 ```
 
-### Output File Header
-
-Include in each `.multi-reviews/review-<short-name>.md`:
-
-```markdown
-# Code Review Results
-
-**Source:** <agent-type>
-**Target:** PR #123 / branch-name
-**Date:** <YYYY-MM-DD HH:mm:ss>
-**Scope:** diff-only
-**Files reviewed:** 12
-
----
-```
-
-Use a short name derived from the agent type (e.g., `pr-toolkit` from
-`pr-review-toolkit:code-reviewer`, `code-review` from `code-review:code-reviewer`,
-`superpowers` from `superpowers:code-reviewer`).
+Short name is derived from the agent type: `pr-toolkit` from `pr-review-toolkit:code-reviewer`,
+`code-review` from `code-review:code-reviewer`, `superpowers` from `superpowers:code-reviewer`.
 
 ### Collecting Results
 
-**Pre-load deferred tools:** Before any `Task` or `TaskOutput` call, use `ToolSearch` with query `select:Task,TaskOutput`. This loads their schemas so `run_in_background: true` (boolean) and `timeout: 300000` (number) are coerced correctly instead of being rejected as strings.
-
-**Capture task IDs from Task responses:** Each `Task` call returns a response object with an `id` field (a UUID like `"abc12345-1234-..."`). You MUST use that exact `id` value in the subsequent `TaskOutput` call. Do NOT derive or guess the ID from the agent description, subagent_type, or any other source.
-
-Wait for ALL agents before writing output files. Call `TaskOutput` for every agent using the `id` returned by their `Task` call (parallel calls are fine):
+Call `TaskOutput` for every agent in parallel using the exact `id` returned by their `Task` call:
 
 ```jsonc
-{"task_id": "<id from Task response>", "block": true, "timeout": 300000}
-// NOTE: task_id MUST be the exact UUID returned by Task (e.g. "abc12345-1234-5678-abcd-000000000000")
-// NOTE: block MUST be boolean true (not string "true"), timeout MUST be number (not string "300000")
+{"task_id": "<exact UUID from Task response>", "block": true, "timeout": 300000}
+// block MUST be boolean true (not string "true"), timeout MUST be number (not string "300000")
+// If TaskOutput returns "No task output available", Rule 1 (ToolSearch pre-load) was skipped — stop and fix that first
 ```
 
-After all agents complete, write each review file, then print all per-agent summaries (see format below) before starting Phase 3.
+After all `TaskOutput` calls return, for each agent use this fallback chain to get findings:
+
+1. **File written** — read `.multi-reviews/review-<short-name>.md`. If it exists and is non-empty, use it. Apply the Normalization Pass and write it back.
+2. **File missing or empty** — the agent returned its findings as text output instead of writing a file. Check the `TaskOutput` content: if it is non-empty and does not match a known failure string (`"No task output available"`, `"No task found with ID"`), use it as the findings. Write it to `.multi-reviews/review-<short-name>.md` (with the standard header prepended), then apply the Normalization Pass. If the content matches a failure string, fall through to step 3.
+3. **Both empty or failed** — warn the user and skip this agent in subsequent phases.
+
+Then print all per-agent summaries before starting Phase 3.
 
 ### Per-Agent Summary Format
 
@@ -123,15 +126,15 @@ If no critical or important findings exist, print: `│ No critical or important
 
 ## Phase 3: Validator Prompt
 
-Launch one validation agent per review output:
+Launch one validation agent per review output (substitute `[SHORT_NAME]` and `[CONFIDENCE_THRESHOLD]`):
 
 ```markdown
-Read and evaluate the findings in .multi-reviews/review-<name>.md.
+Read and evaluate the findings in .multi-reviews/review-[SHORT_NAME].md.
 
 For each issue found:
 1. Verify the issue is real (not a false positive)
 2. Check if it's a pre-existing issue vs new in this PR
-3. Assess severity: Critical / Important / Minor / Nitpick
+3. Assess severity using ONLY these labels: Critical / Important / Minor / Nitpick
 4. Evaluate confidence level (0-100)
 5. Check if issue is actionable
 
@@ -141,10 +144,30 @@ Filter criteria:
 - Remove issues that linters/type checkers would catch
 - Keep issues with confidence >= [CONFIDENCE_THRESHOLD]
 
-Output: Validated findings with confidence scores and reasoning.
+Write your validated findings to .multi-reviews/validated-[SHORT_NAME].md — do NOT return them as text output.
 ```
 
-Output: `.multi-reviews/validated-<short-name>.md`
+After all validators complete, apply the Normalization Pass (see below) to each
+`validated-<short-name>.md` file before proceeding to Phase 4.
+
+## Normalization Pass
+
+Apply this pass to each review or validated file after reading it, before writing it back.
+Make only label substitutions — do not reword, reorder, or restructure any content.
+
+**Severity label mapping** (case-insensitive match on whole-word standalone markers only):
+
+| Matches | Canonical |
+|---------|-----------|
+| `CRITICAL`, `HIGH`, `BLOCKER`, `ERROR`, `🔴`, `P0`, `P1` | `Critical` |
+| `IMPORTANT`, `MEDIUM`, `MAJOR`, `WARNING`, `🟡`, `P2` | `Important` |
+| `MINOR`, `LOW`, `INFO`, `🟢`, `P3` | `Minor` |
+| `NITPICK`, `TRIVIAL`, `STYLE`, `SUGGESTION`, `P4` | `Nitpick` |
+
+Apply substitutions only when the label appears as a **standalone severity marker**: in table
+cells, bold headings (e.g. `**High**`), or as a prefix label (e.g. `**Severity:** High`).
+Do NOT substitute occurrences inside running prose where the word is used descriptively
+(e.g. "this is a high priority area" should not be changed).
 
 ## Phase 4: Aggregation Rules
 
@@ -166,13 +189,13 @@ When duplicates found:
 ### Aggregation Steps
 
 1. **Deduplicate** - Identify issues found by multiple reviews
-2. **Categorize** - Group by severity (Critical > Important > Suggestions)
+2. **Categorize** - Group by severity (Critical > Important > Minor > Nitpick)
 3. **Prioritize** - Security issues first, then by confidence score
 4. **Cross-reference** - Note which review(s) found each issue
 5. **Synthesize** - Create actionable summary
 
 Report sections: Executive Summary, Security Issues, Critical Issues,
-Important Issues, Suggestions, Positive Observations, Review Agreement
+Important Issues, Minor Issues, Nitpicks, Positive Observations, Review Agreement
 Analysis, Recommended Actions.
 
 Output file: `.multi-reviews/review-summary.md`

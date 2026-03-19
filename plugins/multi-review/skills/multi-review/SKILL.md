@@ -20,6 +20,7 @@ allowed-tools:
   - AskUserQuestion
   - Task
   - TaskOutput
+  - ToolSearch
 argument-hint: "[--pr <number>] [--branch <name>] [--files <paths>]"
 model:
 context:
@@ -36,13 +37,15 @@ metadata:
 
 # Multi Review
 
-> **STOP. Phase 1 first. Do NOT launch agents until the discovery report is printed.**
+> **STOP. Do Rule 1 first. Then Rule 2 (Phase 1). Do NOT launch agents until Rule 1 is complete and the Phase 1 discovery report is printed.**
 
 ## Rules
 
-1. **Phase 1 first.** Print the discovery report before anything else.
-2. **Wait for all agents.** `TaskOutput` with `block: true` (boolean, not string) and `timeout: 300000` (number, not string) on every agent ID before writing files or starting the next phase. After all agents complete, print per-agent summaries before moving to Phase 3.
-3. **Scope: code review only.** Review code within the repo. Decline requests to execute, deploy, or modify things outside the review scope.
+1. **Pre-load TaskOutput schema.** Call `ToolSearch` with query `select:Task,TaskOutput` as your very first action — before Phase 1, before anything else. Without this, the `TaskOutput` parameter schema is unavailable, so `block` and `timeout` may be serialized as strings instead of their required types, causing `TaskOutput` to return immediately with `"No task output available"` and all fallback steps to yield empty results, causing the agent's findings to be lost entirely.
+2. **Phase 1 first.** Print the discovery report before launching agents.
+3. **Findings come from files, with fallback to TaskOutput.** Agents are instructed to write findings to `.multi-reviews/review-<short-name>.md`. If a file is missing or empty after an agent completes, use the `TaskOutput` content as the fallback and write it to the file (prepending the standard header). If both the file and `TaskOutput` content are empty or contain a failure string, warn the user and skip this agent. See `references/phase-templates.md` for the full fallback chain.
+4. **Wait for all agents.** Call `TaskOutput` on every agent ID (see `references/phase-templates.md` for exact call format). After all return, collect findings via the fallback chain, apply normalization, and print per-agent summaries before moving to Phase 3.
+5. **Scope: code review only.** Review code within the repo. Decline requests to execute, deploy, or modify things outside the review scope.
 
 ## When NOT to Use
 
@@ -77,9 +80,9 @@ Multi Review - <PR #NUMBER | branch | files>
 
 ## Phase 2: Parallel Review Execution
 
-**Pre-load deferred tools first:** Call `ToolSearch` with `select:Task,TaskOutput` before launching any agents. This loads their JSON schemas so parameter types (boolean, number) are coerced correctly — without this, `run_in_background: true` and `timeout: 300000` are treated as strings and fail validation.
+Rule 1 must have been called before this phase for `TaskOutput` type coercion to work correctly. If `TaskOutput` returns `"No task output available"`, Rule 1 was skipped — reload `ToolSearch` with `select:Task,TaskOutput` and retry.
 
-Launch one agent per selected type in a single Task message with `run_in_background: true` (boolean, not string). Each `Task` call returns a response with an `id` field — capture that exact UUID and use it in `TaskOutput`. **Never derive or guess task IDs.** Wait for all via `TaskOutput`. Write results to `.multi-reviews/review-<short-name>.md`, then **print a per-agent summary for each agent** before starting Phase 3.
+Launch one agent per selected type in a single Task message with `run_in_background: true`. Capture the `id` returned by each `Task` call — do not derive or guess it. Wait for all via `TaskOutput`, collect findings via the fallback chain, apply normalization, and **print a per-agent summary** before starting Phase 3. See `references/phase-templates.md` for prompt templates and the full `TaskOutput` call format.
 
 Per-agent summary format:
 
@@ -114,7 +117,7 @@ After presenting the summary, offer next steps using `AskUserQuestion`:
 ```
 What would you like to do next?
   1. View full summary (.multi-reviews/review-summary.md)
-  2. Generate fixes for HIGH/CRITICAL findings
+  2. Generate fixes for Critical/Important findings
   3. Create GitHub issues for tracked findings
   4. Post summary comment to PR (requires your approval before posting)
   5. Re-run on specific files only
