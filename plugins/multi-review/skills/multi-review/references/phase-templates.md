@@ -2,15 +2,15 @@
 
 ## Phase 1: Confirmation Flow
 
-If `--no-input` is set, skip — proceed directly to Phase 2 with auto-selected agents.
+If `--no-input` is set, skip and proceed directly to Phase 2 with auto-selected agents.
 
 Otherwise, use a two-step confirmation:
 
-**Step 1: Accept or customize** — `AskUserQuestion` with `multiSelect: false`:
+**Step 1: Accept or customize.** Use `AskUserQuestion` with `multiSelect: false`:
 - "Accept recommended" → proceed to Phase 2 with `[selected]` agents
 - "Customize selection" → continue to Step 2
 
-**Step 2: Agent selection (only if "Customize")** — `AskUserQuestion` with `multiSelect: true`:
+**Step 2: Agent selection (only if "Customize").** Use `AskUserQuestion` with `multiSelect: true`:
 - List ALL discovered agents (all unchecked by default)
 - Append "(Recommended)" to the label of agents marked `[selected]`
 - Set `max-reviewers` to number of agents user selected
@@ -22,7 +22,6 @@ Otherwise, use a two-step confirmation:
 
 Before launching any agents, verify ALL of the following:
 
-- [ ] `ToolSearch` with `select:Task,TaskOutput` was called (Rule 1) — if not, Rule 1 was skipped in error; recover by calling it now before proceeding
 - [ ] User has confirmed the Phase 1 agent selection (or `--no-input` is set)
 - [ ] You are using ONLY the confirmed/auto-selected agent types from Phase 1
 - [ ] `.multi-reviews/` directory exists (create with `mkdir -p .multi-reviews` if not)
@@ -47,7 +46,7 @@ Review [TARGET].
 
 OUTPUT REQUIREMENT (most important): Write your complete findings to
 .multi-reviews/review-[SHORT_NAME].md using the Write tool. Do NOT return findings
-as text output — the file is how the orchestrator collects your results.
+as text output. The file is how the orchestrator collects your results.
 
 CRITICAL INSTRUCTIONS:
 1. Write findings to .multi-reviews/review-[SHORT_NAME].md (see above)
@@ -78,31 +77,33 @@ Short name is derived from the agent type: `pr-toolkit` from `pr-review-toolkit:
 
 ### Collecting Results
 
-**Launch agents and call TaskOutput in the same message turn.** Task IDs expire shortly after an agent completes — if you launch all agents first and then call TaskOutput in a subsequent message, the IDs may already be gone. To prevent this, issue all `Task` and `TaskOutput` calls together in one response, like this:
+Launch all agents with `run_in_background: true`, then poll until all output files appear.
 
-```
-Turn N (single response):
-  Task(agent-A, run_in_background: true)   → id-A
-  Task(agent-B, run_in_background: true)   → id-B
-  Task(agent-C, run_in_background: true)   → id-C
-  TaskOutput(id-A, block: true, timeout: 300000)
-  TaskOutput(id-B, block: true, timeout: 300000)
-  TaskOutput(id-C, block: true, timeout: 300000)
-```
+**Polling procedure (repeat every 10 seconds, up to 10 minutes):**
 
-The `TaskOutput` calls block until each agent finishes. Because they are registered in the same turn as the `Task` calls, the IDs are still valid when the blocking waits resolve.
+Maintain a pending-agents list initialized with all launched agents. Remove an agent from the list when it is marked done. Each cycle: for every still-pending agent, run steps 1-2 (agents may be marked done during this step). Then run step 3 once only if at least one agent is still pending after all step 1-2 iterations complete.
 
-```jsonc
-{"task_id": "<exact UUID from Task response>", "block": true, "timeout": 300000}
-// block MUST be boolean true (not string "true"), timeout MUST be number (not string "300000")
-// If TaskOutput returns "No task output available", Rule 1 (ToolSearch pre-load) was skipped — stop and fix that first
-```
+**Step 1: TaskOutput probe** (per pending agent): Call `TaskOutput(id, block: false, timeout: 0)`.
+- `"Task is still running…"` → agent still running; skip to step 2.
+- `"No task found with ID"` → agent finished, ID expired; no fallback content; skip to step 2.
+- `"No task output available"` → agent finished, produced no text output; no fallback content; skip to step 2.
+- Any other non-empty content → agent finished; save this content as the TaskOutput fallback; skip to step 2.
 
-After all `TaskOutput` calls return, for each agent use this fallback chain to get findings:
+**Step 2: File check** (per pending agent): Run `ls .multi-reviews/review-<short-name>.md`.
+- File exists and non-empty → agent wrote its findings; collect findings (see below); mark agent done.
+- File missing or empty (treat empty as absent), and step 1 returned `"Task is still running…"` → agent still pending; leave in pending list.
+- File missing or empty, and step 1 saved fallback content (case 4 above) → agent done, no file; collect findings using TaskOutput fallback (see below); mark agent done.
+- File missing or empty, and step 1 returned an expiry or no-output string (cases 2 or 3 above) → agent done, no fallback available; warn the user and skip this agent; mark agent done.
 
-1. **File written** — read `.multi-reviews/review-<short-name>.md`. If it exists and is non-empty, use it. Apply the Normalization Pass and write it back.
-2. **File missing or empty** — the agent returned its findings as text output instead of writing a file. Check the `TaskOutput` content: if it is non-empty and does not match a known failure string (`"No task output available"`, `"No task found with ID"`), use it as the findings. Write it to `.multi-reviews/review-<short-name>.md` (with the standard header prepended), then apply the Normalization Pass. If the content matches a failure string, fall through to step 3.
-3. **Both empty or failed** — warn the user and skip this agent in subsequent phases.
+**Step 3: Sleep** (once per cycle, only if agents remain pending): Call `Bash("sleep 10")`.
+
+**When an agent is detected as finished**, collect findings using this priority order:
+
+1. **File:** read `.multi-reviews/review-<short-name>.md`. If it exists and is non-empty, use it. Apply the Normalization Pass and write it back.
+2. **TaskOutput content:** if file is missing or empty, and the last `TaskOutput` probe returned non-empty content (not a known status string: `"Task is still running…"`, `"No task found with ID"`, or `"No task output available"`), write it to `.multi-reviews/review-<short-name>.md` (with the standard header prepended), then apply the Normalization Pass.
+3. **Skip:** if both are empty or unavailable, warn the user and skip this agent in subsequent phases.
+
+After 10 minutes, treat any agent with no file as skipped.
 
 Then print all per-agent summaries before starting Phase 3.
 
@@ -134,7 +135,7 @@ Show at most 5 preview lines. If more than 5 critical/important findings exist, 
 
 If no critical or important findings exist, print: `│ No critical or important issues found`
 
-**Unparseable output:** If an agent returns results that cannot be parsed into severity/findings (e.g., unstructured text, errors), print: `│ ⚠ Could not parse findings — see .multi-reviews/review-<short-name>.md`
+**Unparseable output:** If an agent returns results that cannot be parsed into severity/findings (e.g., unstructured text, errors), print: `│ ⚠ Could not parse findings. See .multi-reviews/review-<short-name>.md`
 
 ## Phase 3: Validator Prompt
 
@@ -156,16 +157,15 @@ Filter criteria:
 - Remove issues that linters/type checkers would catch
 - Keep issues with confidence >= [CONFIDENCE_THRESHOLD]
 
-Write your validated findings to .multi-reviews/validated-[SHORT_NAME].md — do NOT return them as text output.
+Write your validated findings to .multi-reviews/validated-[SHORT_NAME].md. Do NOT return them as text output.
 ```
 
-After all validators complete, apply the Normalization Pass (see below) to each
-`validated-<short-name>.md` file before proceeding to Phase 4.
+Launch validators with `run_in_background: true` and poll for `validated-<short-name>.md` files using the same procedure as Phase 2 (Steps 1-3, including the TaskOutput fallback if a validated file is missing, every 10 seconds, up to 10 minutes). After all validators complete, apply the Normalization Pass (see below) to each `validated-<short-name>.md` file before proceeding to Phase 4.
 
 ## Normalization Pass
 
 Apply this pass to each review or validated file after reading it, before writing it back.
-Make only label substitutions — do not reword, reorder, or restructure any content.
+Make only label substitutions. Do not reword, reorder, or restructure any content.
 
 **Severity label mapping** (case-insensitive match on whole-word standalone markers only):
 
