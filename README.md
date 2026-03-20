@@ -35,6 +35,7 @@ claude plugin marketplace add ./claude-code-plugins
 | [claude-cleanup](plugins/claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` | — |
 | [git-absorb](plugins/git-absorb/README.md) | Create fixup commits targeting the right parent using `git absorb` | `/git-absorb` | [git-absorb](https://github.com/tummychow/git-absorb) |
 | [skill-cso-review](plugins/skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` | — |
+| [mac-notifications](plugins/mac-notifications/.claude-plugin/plugin.json) | macOS sound and system notifications for Claude Code events (Stop, SubagentStop, Notification, PermissionRequest) | Automatic via hooks | macOS |
 
 ## Structure
 

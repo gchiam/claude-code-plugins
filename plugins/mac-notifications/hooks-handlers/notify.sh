@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared notification helper
+# Shared notification helper — reads hook JSON from stdin
 # Usage: notify.sh <sound-filename> <message>
 # Example: notify.sh Glass.aiff "Task completed"
 
@@ -14,4 +14,8 @@ SESS=$(basename "$CWD")
 
 afplay "/System/Library/Sounds/$SOUND" 2>/dev/null &
 
-# TODO(human): call osascript safely using $MSG and $SESS without string interpolation injection
+MSG_SAFE=$(echo "$MSG" | sed 's/\\/\\\\/g; s/"/\\"/g')
+SESS_SAFE=$(echo "$SESS" | sed 's/\\/\\\\/g; s/"/\\"/g')
+osascript <<EOF 2>/dev/null; true
+display notification "$MSG_SAFE" with title "Claude Code [$SESS_SAFE]"
+EOF
