@@ -54,6 +54,9 @@ npm run dev -- <plugin-name>
 ```
 Launches a Claude session with the plugin loaded from your working tree. Edit files, re-run — no install needed.
 
+### Push changes
+Always run `git pull --rebase` before `git push` to avoid rejected pushes due to remote commits (e.g. release automation commits back to main).
+
 ### Scaffold a new plugin
 ```
 npm run scaffold -- <plugin-name>
