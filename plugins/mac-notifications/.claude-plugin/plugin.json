@@ -1,6 +1,6 @@
 {
   "name": "mac-notifications",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "macOS notification hooks for Claude Code events — plays sounds and shows system notifications for Notification, PermissionRequest, Stop, and SubagentStop events.",
   "author": {
     "name": "gchiam"
