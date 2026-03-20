@@ -4,11 +4,12 @@ A Claude Code plugin for capturing notes, tasks, and insights directly into [Log
 
 ## Features
 
-- **Three capture commands**: structured, quick, and last-response capture
+- **Five commands**: structured, quick, last-response capture, work logging, and work page creation
 - **Auto-detects setup issues** at session start with inline instructions
 - **Guided setup agent** for graphthulhu installation and Logseq API configuration
 - **Consistent block structure**: properties, tags, and nesting conventions
 - **Always tagged `#claude-managed`** for easy filtering in Logseq
+- **Work tracking**: log work items to today's journal and create structured pages for JIRA tickets, PRs, and repos
 
 ## Prerequisites
 
@@ -54,6 +55,33 @@ export LOGSEQ_API_TOKEN="your-token-here"
 | `/logseq:capture [page]` | Structured capture — prompts for type, title, content, tags |
 | `/logseq:quick-capture <text>` | Instant capture of raw text to today's journal |
 | `/logseq:capture-last [title]` | Capture most recent Claude response to today's journal |
+| `/logseq:work-log` | Append timestamped work items to today's journal under structured sections |
+| `/logseq:new-work-page <type> <id>` | Create a structured page for a JIRA ticket, PR, or repo/service |
+
+### Work Log
+
+`/logseq:work-log` prompts for work items and writes them to today's journal under these sections (created on demand):
+
+- `## In Progress` — active work items
+- `## Done` — completed items
+- `## Blocked` — items waiting on something
+- `## Next` — planned upcoming work
+
+Each entry is formatted as:
+
+```
+[[JIRA/PROJ-123]] description of work #claude-managed #work-log [HH:MM]
+```
+
+### New Work Page
+
+`/logseq:new-work-page` creates a page with structured properties. Supported types:
+
+| Type | Example | Page name |
+|------|---------|-----------|
+| JIRA ticket | `jira PROJ-123` | `JIRA/PROJ-123` |
+| Pull Request | `pr myrepo 42` | `PR/myrepo/42` |
+| Repo/service | `repo my-service` | `Repo/my-service` |
 
 ## Project Settings
 
