@@ -1,6 +1,6 @@
 {
   "name": "pr-desc-review",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Review PR descriptions to ensure they accurately reflect the implementation",
   "author": {
     "name": "gchiam"
