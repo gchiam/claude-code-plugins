@@ -55,12 +55,14 @@ metadata:
 
 ## Phase 1: Discover Available Review Agents
 
-1. **Extract** review-related agent types from the Task tool's `subagent_type` list (names/descriptions mentioning "review", "code review", "PR review", "code quality").
+1. **Extract** review-related agent types using `ToolSearch` with query `"review code review PR review code quality"`. This returns agent schemas — only entries that appear as valid `subagent_type` values in the Task tool are agents. Skills are not subagent types and must not be included. Filter to those whose name or description mentions "review", "code review", "PR review", or "code quality".
 2. **Triage the diff.** Before selecting agents, briefly inspect the diff to build a profile:
    - Languages and file types changed
    - Change categories (new interfaces/types, error handling, test files, config, security-sensitive paths)
    - Rough scale (number of files, methods added/changed)
+   - **PR context:** if the target is a PR number, fetch `gh pr view <NUMBER> --json body` and note whether the PR has a non-empty description (not just template boilerplate). This is a separate selection signal for PR-meta agents.
 3. **Filter.** `multi-review` must always go in the `[skipped]` list (never selected, it's the orchestrator). Rank all other agents by relevance to the diff profile. Pick up to `--max-reviewers` (default 3) preferring both relevance and plugin diversity. Record a short reason for each selected/skipped agent. Note in the discovery report if a selected agent's tool list lacks `Write`. Its findings will only be available via the TaskOutput fallback.
+   - **PR-meta agents** (agents whose description mentions "PR description" or "description review") are selected based on PR context, not diff content: select if the target is a PR with a non-empty description, skip with reason "no PR description" otherwise. PR-meta agents do not count against `--max-reviewers`.
 4. **Print** the discovery report in this exact format:
 
 ```text
