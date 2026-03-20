@@ -1,9 +1,10 @@
 ---
+name: desc-reviewer
 description: >-
-  Specialized code review agent that checks whether PR descriptions accurately
-  reflect the implementation. Performs a review by cross-referencing description
-  claims against the actual diff to find discrepancies, missing mentions, and
-  inaccuracies.
+  PR description review agent that checks whether PR descriptions accurately
+  reflect the implementation. Performs a description review by cross-referencing
+  description claims against the actual diff to find discrepancies, missing
+  mentions, and inaccuracies.
 ---
 
 # PR Description Review Agent
