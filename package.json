@@ -16,7 +16,8 @@
     "plugins/claude-cleanup",
     "plugins/git-absorb",
     "plugins/skill-cso-review",
-    "plugins/logseq"
+    "plugins/logseq",
+    "plugins/mac-notifications"
   ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
