@@ -42,6 +42,8 @@ build(repo): add commitlint configuration
 ### Plugin layout
 All plugins live under `plugins/<name>/`. Do not assume root-level plugin dirs.
 
+Every plugin — including hook-only plugins with no npm dependencies — must have a `package.json` and be listed in the root `package.json` `workspaces` array. The release workflow uses `multi-semantic-release`, which discovers packages via workspaces. A plugin without a `package.json` will never be released.
+
 ### Validate all plugins
 ```
 npm run validate
