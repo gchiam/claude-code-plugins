@@ -19,6 +19,12 @@
     "plugins/logseq",
     "plugins/mac-notifications"
   ],
+  "overrides": {
+    "@actions/http-client": {
+      "undici": "^6.24.1"
+    },
+    "undici": "^7.24.5"
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
