@@ -29,13 +29,13 @@ claude plugin marketplace add ./claude-code-plugins
 
 | Plugin | Description | Invocation | Prerequisites |
 |---|---|---|---|
-| [multi-review](plugins/multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` | — |
-| [pr-desc-review](plugins/pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` | — |
-| [jira-cli](plugins/jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` | [jira-cli](https://github.com/ankitpokhrel/jira-cli), `JIRA_API_TOKEN` |
 | [claude-cleanup](plugins/claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` | — |
 | [git-absorb](plugins/git-absorb/README.md) | Create fixup commits targeting the right parent using `git absorb` | `/git-absorb` | [git-absorb](https://github.com/tummychow/git-absorb) |
-| [skill-cso-review](plugins/skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` | — |
+| [jira-cli](plugins/jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` | [jira-cli](https://github.com/ankitpokhrel/jira-cli), `JIRA_API_TOKEN` |
 | [mac-notifications](plugins/mac-notifications/.claude-plugin/plugin.json) | macOS sound and system notifications for Claude Code events (Stop, SubagentStop, Notification, PermissionRequest) | Automatic via hooks | macOS |
+| [multi-review](plugins/multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` | — |
+| [pr-desc-review](plugins/pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` | — |
+| [skill-cso-review](plugins/skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` | — |
 
 ## Structure
 
