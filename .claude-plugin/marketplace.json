@@ -41,6 +41,11 @@
       "name": "logseq",
       "source": "./plugins/logseq",
       "description": "Capture notes, tasks, and insights from Claude conversations directly into Logseq via the graphthulhu MCP server"
+    },
+    {
+      "name": "mac-notifications",
+      "source": "./plugins/mac-notifications",
+      "description": "macOS sound and system notifications for Claude Code events — plays sounds and shows notifications for Stop, SubagentStop, Notification, and PermissionRequest events"
     }
   ]
 }

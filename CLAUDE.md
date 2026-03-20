@@ -42,7 +42,7 @@ build(repo): add commitlint configuration
 ### Plugin layout
 All plugins live under `plugins/<name>/`. Do not assume root-level plugin dirs.
 
-Every plugin — including hook-only plugins with no npm dependencies — must have a `package.json` and be listed in the root `package.json` `workspaces` array. The release workflow uses `multi-semantic-release`, which discovers packages via workspaces. A plugin without a `package.json` will never be released.
+Every plugin — including hook-only plugins with no npm dependencies — must have a `package.json`, be listed in the root `package.json` `workspaces` array, and have an entry in `.claude-plugin/marketplace.json`. Without the marketplace entry the plugin cannot be installed via `claude plugin install`. The release workflow uses `multi-semantic-release`, which discovers packages via workspaces. A plugin without a `package.json` will never be released.
 
 After adding a new workspace entry, always run `npm install` and commit the updated `package-lock.json`. The CI uses `npm ci`, which requires the lockfile to exactly match `package.json` — it will fail if the lockfile is out of sync.
 
