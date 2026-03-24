@@ -35,7 +35,8 @@ For each agent, use this prompt (substitute `[AGENT_TYPE]`, `[TARGET]`, `[SHORT_
   "subagent_type": "[AGENT_TYPE]",
   "description": "[AGENT_TYPE] review",
   "prompt": "<full prompt below>",
-  "run_in_background": true  // MUST be boolean true (not string "true")
+  "run_in_background": true,  // MUST be boolean true (not string "true")
+  "mode": "bypassPermissions"  // required so agents can write output files without prompting
 }
 ```
 
@@ -160,7 +161,19 @@ Filter criteria:
 Write your validated findings to .multi-reviews/validated-[SHORT_NAME].md. Do NOT return them as text output.
 ```
 
-Launch validators with `run_in_background: true` and poll for `validated-<short-name>.md` files using the same procedure as Phase 2 (Steps 1-3, including the TaskOutput fallback if a validated file is missing, every 10 seconds, up to 10 minutes). After all validators complete, apply the Normalization Pass (see below) to each `validated-<short-name>.md` file before proceeding to Phase 4.
+Launch validators using this parameters block (substitute `[SHORT_NAME]`):
+
+```jsonc
+{
+  "subagent_type": "general-purpose",
+  "description": "validate [SHORT_NAME] review",
+  "prompt": "<validator prompt above>",
+  "run_in_background": true,  // MUST be boolean true (not string "true")
+  "mode": "bypassPermissions"  // required so validators can write output files without prompting
+}
+```
+
+Poll for `validated-<short-name>.md` files using the same procedure as Phase 2 (Steps 1-3, including the TaskOutput fallback if a validated file is missing, every 10 seconds, up to 10 minutes). After all validators complete, apply the Normalization Pass (see below) to each `validated-<short-name>.md` file before proceeding to Phase 4.
 
 ## Normalization Pass
 
