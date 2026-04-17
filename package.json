@@ -17,7 +17,8 @@
     "plugins/git-absorb",
     "plugins/skill-cso-review",
     "plugins/logseq",
-    "plugins/mac-notifications"
+    "plugins/mac-notifications",
+    "plugins/review-pr-comments"
   ],
   "overrides": {
     "@actions/http-client": {

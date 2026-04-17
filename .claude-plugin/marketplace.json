@@ -46,6 +46,11 @@
       "name": "mac-notifications",
       "source": "./plugins/mac-notifications",
       "description": "macOS sound and system notifications for Claude Code events — plays sounds and shows notifications for Stop, SubagentStop, Notification, and PermissionRequest events"
+    },
+    {
+      "name": "review-pr-comments",
+      "source": "./plugins/review-pr-comments",
+      "description": "TODO: Add plugin description"
     }
   ]
 }
