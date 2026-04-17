@@ -1,7 +1,7 @@
 {
   "name": "review-pr-comments",
   "version": "1.0.0",
-  "description": "Review and triage open PR review comments — fetch, summarise by severity and file, and action comments on a pull request.",
+  "description": "Systematically address GitHub PR inline review comments: fetch, evaluate, apply, commit, and summarize",
   "author": {
     "name": "gchiam"
   }
