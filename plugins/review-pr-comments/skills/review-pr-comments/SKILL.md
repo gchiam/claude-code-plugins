@@ -6,7 +6,7 @@ description: >-
   comments", "process PR feedback", "apply reviewer suggestions", or
   "/review-pr-comments <number>".
 user-invocable: true
-argument-hint: "<pr-number> [--comment <comment-id>]"
+argument-hint: "<pr-number> [--comment <comment-id-or-url>]"
 allowed-tools:
   - Bash(gh api*)
   - Bash(gh pr*)
@@ -40,9 +40,14 @@ Systematically fetch, evaluate, apply, and commit GitHub PR inline review commen
 ```
 /review-pr-comments <pr-number>
 /review-pr-comments <pr-number> --comment <comment-id>
+/review-pr-comments <pr-number> --comment <comment-url>
 ```
 
-If `--comment <id>` is provided, still execute Phase 1 Steps 1 and 2 (resolve
+`--comment` accepts either a numeric comment ID or a full GitHub comment URL
+(e.g. `https://github.com/owner/repo/pull/42#discussion_r12345678`).
+If a URL is provided, extract the numeric ID from the fragment (the digits after `_r`).
+
+If `--comment` is provided, still execute Phase 1 Steps 1 and 2 (resolve
 repo, then fetch the single comment using `gh api repos/<OWNER>/<REPO>/pulls/comments/<COMMENT_ID>`),
 skip Steps 3 and 4 (discovery report and task creation), then proceed directly
 to Phase 2 for that comment.
