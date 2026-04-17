@@ -271,13 +271,24 @@ After all tasks are processed, print:
 PR Comments Summary - PR #<PR_NUMBER>
 ════════════════════════════════════════
 
-| Comment ID | Reviewer | File | Decision | Reasoning | Status |
-|------------|----------|------|----------|-----------|--------|
-| #<id> | @<user> | <path>:<line> | ACCEPT | <reason> | ✅ DONE |
-| #<id> | @<user> | <path>:<line> | REJECT | <reason> | ❌ REJECTED |
-| #<id> | @<user> | <path>:<line> | NO_ACTION | <reason> | ⬜ SKIPPED |
-| #<id> | @<user> | <path>:<line> | ALREADY_DONE | <reason> | ✅ ALREADY DONE |
-| #<id> | @<user> | <path>:<line> | SKIP | <reason> | ⬜ SKIPPED |
+| # | File | Decision | Status |
+|---|------|----------|--------|
+| #<id> @<user> | <path>:<line> | ACCEPT | ✅ DONE |
+| #<id> @<user> | <path>:<line> | REJECT | ❌ REJECTED |
+| #<id> @<user> | <path>:<line> | NO_ACTION | ⬜ SKIPPED |
+| #<id> @<user> | <path>:<line> | ALREADY_DONE | ✅ ALREADY DONE |
+| #<id> @<user> | <path>:<line> | SKIP | ⬜ SKIPPED |
 
 Totals: <N> accepted  <N> already done  <N> rejected  <N> no-action  <N> skipped
 ```
+
+Then print a **Details** section with one line per non-trivial decision:
+
+```
+Details:
+  #<id> REJECT — <one sentence reasoning>
+  #<id> ACCEPT — <one sentence summary of what was changed>
+  #<id> SKIP   — <one sentence why>
+```
+
+Omit ALREADY_DONE and NO_ACTION from the details list unless they need explanation.
