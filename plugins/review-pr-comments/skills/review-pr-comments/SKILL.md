@@ -144,14 +144,24 @@ for context). Note the current state of the code.
 Compare the comment's `diff_hunk` and `body` against current file contents.
 If `diff_hunk` is null or absent, rely solely on the `body` and current file state to assess applicability.
 
-**If stale** (code no longer exists, already fixed, or the diff_hunk pattern is
-absent):
+**If stale** (referenced file or code no longer exists, or the diff_hunk pattern
+is absent):
 
 ```
-SKIP -- <reason>  (e.g. "code was refactored in a prior commit")
+SKIP -- <reason>  (e.g. "file was deleted in a prior commit")
 ```
 
 Call `TaskUpdate` with `status: completed` and prepend `[SKIP]` to the
+description. Move to the next comment.
+
+**If already addressed** (the suggestion was already applied — the current code
+already matches what the comment requested):
+
+```
+ALREADY_DONE -- <reason>  (e.g. "guard clause already present at line 45")
+```
+
+Call `TaskUpdate` with `status: completed` and prepend `[ALREADY_DONE]` to the
 description. Move to the next comment.
 
 ### 2.3 Decide
@@ -232,8 +242,8 @@ git commit -m "<message matching repo commit style>"
 Call `TaskUpdate`:
 
 - `status`: `completed`
-- Prepend decision tag to description: `[ACCEPT]`, `[REJECT]`, or
-  `[NO_ACTION]`
+- Prepend decision tag to description: `[ACCEPT]`, `[REJECT]`, `[NO_ACTION]`,
+  `[ALREADY_DONE]`, or `[SKIP]`
 - Append one-line summary of what was done (or why no action was taken)
 
 ---
@@ -251,7 +261,8 @@ PR Comments Summary - PR #<PR_NUMBER>
 | #<id> | @<user> | <path>:<line> | ACCEPT | <reason> | ✅ DONE |
 | #<id> | @<user> | <path>:<line> | REJECT | <reason> | ❌ REJECTED |
 | #<id> | @<user> | <path>:<line> | NO_ACTION | <reason> | ⬜ SKIPPED |
+| #<id> | @<user> | <path>:<line> | ALREADY_DONE | <reason> | ✅ ALREADY DONE |
 | #<id> | @<user> | <path>:<line> | SKIP | <reason> | ⬜ SKIPPED |
 
-Totals: <N> accepted  <N> rejected  <N> no-action  <N> skipped
+Totals: <N> accepted  <N> already done  <N> rejected  <N> no-action  <N> skipped
 ```
