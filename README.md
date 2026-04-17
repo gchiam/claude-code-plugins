@@ -35,6 +35,7 @@ claude plugin marketplace add ./claude-code-plugins
 | [mac-notifications](plugins/mac-notifications/.claude-plugin/plugin.json) | macOS sound and system notifications for Claude Code events (Stop, SubagentStop, Notification, PermissionRequest) | Automatic via hooks | macOS |
 | [multi-review](plugins/multi-review/skills/multi-review/README.md) | Use when reviewing a large or high-risk PR and want multiple specialized perspectives | `/multi-review --pr 123` | — |
 | [pr-desc-review](plugins/pr-desc-review/skills/pr-desc-review/SKILL.md) | Checks that a PR description accurately reflects the implementation | `/pr-desc-review` | — |
+| [review-pr-comments](plugins/review-pr-comments/README.md) | Fetch, evaluate, and apply GitHub PR inline review comments | `/review-pr-comments <pr-number>` | — |
 | [skill-cso-review](plugins/skill-cso-review/skills/skill-cso-review/SKILL.md) | Audit `SKILL.md` files for CSO compliance (description quality, structure) | `/skill-cso-review:review-skills` | — |
 
 ## Structure
