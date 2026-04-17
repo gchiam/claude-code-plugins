@@ -50,7 +50,7 @@
     {
       "name": "review-pr-comments",
       "source": "./plugins/review-pr-comments",
-      "description": "TODO: Add plugin description"
+      "description": "Systematically address GitHub PR inline review comments: fetch, evaluate, apply, commit, and summarize"
     }
   ]
 }

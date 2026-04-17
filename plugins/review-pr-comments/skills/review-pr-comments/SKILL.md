@@ -13,7 +13,6 @@ allowed-tools:
   - Bash(git log*)
   - Bash(git add*)
   - Bash(git commit*)
-  - Bash(git diff*)
   - Read
   - Edit
   - Write
@@ -43,8 +42,10 @@ Systematically fetch, evaluate, apply, and commit GitHub PR inline review commen
 /review-pr-comments <pr-number> --comment <comment-id>
 ```
 
-If `--comment <id>` is provided, process only that single comment and skip the
-task-creation loop -- jump directly to Phase 2 for that comment.
+If `--comment <id>` is provided, still execute Phase 1 Steps 1 and 2 (resolve
+repo, then fetch the single comment using `gh api repos/<OWNER>/<REPO>/pulls/comments/<COMMENT_ID>`),
+skip Steps 3 and 4 (discovery report and task creation), then proceed directly
+to Phase 2 for that comment.
 
 ## Rules
 
@@ -54,14 +55,13 @@ task-creation loop -- jump directly to Phase 2 for that comment.
 3. **Regular commits for independent changes.** New behavior, new files, docs
    additions get their own descriptive commit. First run `git log --oneline -10`
    to inspect the repo's commit style, then match it exactly.
-4. **Batch multiple comments touching the same file** into one fixup commit when
-   they are all independent of each other (no ordering dependency).
-5. **Run tests after applying changes to test files.** Command:
-   `./gradlew test --tests <RelevantTestClass>` (Java/Gradle). Adapt to the
-   project's test runner if different.
-6. **SKIP stale comments.** If the referenced code no longer exists or has
+4. **Run tests after applying changes to test files.** Run the project's tests
+   for the affected code. Example (Java/Gradle):
+   `./gradlew test --tests <RelevantTestClass>`
+   Adapt to the project's actual test runner (npm test, pytest, cargo test, etc.).
+5. **SKIP stale comments.** If the referenced code no longer exists or has
    already been addressed, mark `SKIP` with a reason -- do not apply a change.
-7. **Verify after each fix.** Re-read the changed lines to confirm correctness
+6. **Verify after each fix.** Re-read the changed lines to confirm correctness
    before committing.
 
 ## When NOT to Use
@@ -137,6 +137,7 @@ for context). Note the current state of the code.
 ### 2.2 Validate applicability
 
 Compare the comment's `diff_hunk` and `body` against current file contents.
+If `diff_hunk` is null or absent, rely solely on the `body` and current file state to assess applicability.
 
 **If stale** (code no longer exists, already fixed, or the diff_hunk pattern is
 absent):
@@ -180,15 +181,20 @@ Re-read the changed file at the affected lines. Confirm:
 - No surrounding code was accidentally modified
 - Import order and formatting are correct (for Java: checkstyle conventions)
 
-If the changed file has corresponding tests, run them:
+If the changed file has corresponding tests, run them. Run the project's tests
+for the affected code. Example (Java/Gradle):
 
 ```bash
 ./gradlew test --tests <RelevantTestClass>
 ```
 
+Adapt to the project's actual test runner (npm test, pytest, cargo test, etc.).
+
 If tests fail, fix the implementation before proceeding to commit.
 
 ### 2.6 Commit
+
+If decision is REJECT or NO_ACTION, skip this step entirely -- proceed to 2.7.
 
 Run `git log --oneline -20` to inspect recent commits.
 
@@ -214,14 +220,6 @@ Then commit following that style exactly:
 ```bash
 git add <file>
 git commit -m "<message matching repo commit style>"
-```
-
-**Batched fixup** (multiple independent comments in the same file -- commit
-them together):
-
-```bash
-git add <file>
-git commit -m "fixup! <original commit message>"
 ```
 
 ### 2.7 Update task
