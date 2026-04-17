@@ -6,7 +6,7 @@ description: >-
   comments", "process PR feedback", "apply reviewer suggestions", or
   "/review-pr-comments <number>".
 user-invocable: true
-argument-hint: "<pr-number> [--comment <comment-id-or-url>]"
+argument-hint: "<pr-number> [--fix] [--comment <comment-id-or-url>]"
 allowed-tools:
   - Bash(gh api*)
   - Bash(gh pr*)
@@ -39,11 +39,17 @@ Systematically fetch, evaluate, apply, and commit GitHub PR inline review commen
 
 ```
 /review-pr-comments <pr-number>
-/review-pr-comments <pr-number> --comment <comment-id>
-/review-pr-comments <pr-number> --comment <comment-url>
+/review-pr-comments <pr-number> --fix
+/review-pr-comments <pr-number> --comment <comment-id-or-url>
+/review-pr-comments <pr-number> --fix --comment <comment-id-or-url>
 ```
 
-`--comment` accepts either a numeric comment ID or a full GitHub comment URL
+**`--fix`** — when present, apply code changes and commit for ACCEPT decisions.
+Without `--fix` (default), the skill assesses and reports decisions only — no
+files are edited and no commits are made. This is useful for reviewing what
+would be done before committing to it.
+
+**`--comment`** accepts either a numeric comment ID or a full GitHub comment URL
 (e.g. `https://github.com/owner/repo/pull/42#discussion_r12345678`).
 If a URL is provided, extract the numeric ID from the fragment (the digits after `_r`).
 
@@ -181,14 +187,21 @@ Decision: ACCEPT / REJECT / NO_ACTION
 Reasoning: <one or two sentences>
 ```
 
-### 2.4 Apply (ACCEPT only)
+### 2.4 Apply (ACCEPT + --fix only)
+
+If `--fix` was **not** provided, skip this step entirely -- proceed to 2.7 and
+note "assessment only, no change applied" in the task summary.
+
+If `--fix` is present:
 
 - **GitHub suggestion block** (` ```suggestion ` in body): apply the suggestion
   text exactly as written, replacing the hunk lines.
 - **Prose suggestion**: implement the intent of the comment. Keep changes
   minimal -- do not refactor surrounding code.
 
-### 2.5 Verify
+### 2.5 Verify (--fix only)
+
+Skip this step if `--fix` was not provided.
 
 Re-read the changed file at the affected lines. Confirm:
 
@@ -207,9 +220,11 @@ Adapt to the project's actual test runner (npm test, pytest, cargo test, etc.).
 
 If tests fail, fix the implementation before proceeding to commit.
 
-### 2.6 Commit
+### 2.6 Commit (--fix only)
 
-If decision is REJECT or NO_ACTION, skip this step entirely -- proceed to 2.7.
+Skip this step if `--fix` was not provided -- proceed to 2.7.
+
+If decision is REJECT, NO_ACTION, ALREADY_DONE, or SKIP, skip this step entirely -- proceed to 2.7.
 
 Run `git log --oneline -20` to inspect recent commits.
 
