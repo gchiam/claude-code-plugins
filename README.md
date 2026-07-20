@@ -29,6 +29,7 @@ claude plugin marketplace add ./claude-code-plugins
 
 | Plugin | Description | Invocation | Prerequisites |
 |---|---|---|---|
+| [check-pr-comments](plugins/check-pr-comments/README.md) | Verify whether a reviewer's PR comments are addressed in code, cross-checked against thread resolution | `/check-pr-comments <pr-number> <reviewer>` | — |
 | [claude-cleanup](plugins/claude-cleanup/skills/claude-cleanup/SKILL.md) | Remove stale project entries from `~/.claude.json` | `"Clean up claude.json"` | — |
 | [git-absorb](plugins/git-absorb/README.md) | Create fixup commits targeting the right parent using `git absorb` | `/git-absorb` | [git-absorb](https://github.com/tummychow/git-absorb) |
 | [jira-cli](plugins/jira-cli/skills/jira-cli/SKILL.md) | Interact with Jira — issues, sprints, epics, transitions | `"Show my open Jira tickets"` | [jira-cli](https://github.com/ankitpokhrel/jira-cli), `JIRA_API_TOKEN` |
