@@ -1,0 +1,8 @@
+{
+  "name": "check-pr-comments",
+  "version": "1.0.0",
+  "description": "Verify whether a reviewer's GitHub PR comments are addressed in code, cross-checked against thread resolution status",
+  "author": {
+    "name": "gchiam"
+  }
+}

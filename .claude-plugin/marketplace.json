@@ -51,6 +51,11 @@
       "name": "review-pr-comments",
       "source": "./plugins/review-pr-comments",
       "description": "Systematically address GitHub PR inline review comments: fetch, evaluate, apply, commit, and summarize"
+    },
+    {
+      "name": "check-pr-comments",
+      "source": "./plugins/check-pr-comments",
+      "description": "Verify whether a reviewer's GitHub PR comments are addressed in code, cross-checked against thread resolution status"
     }
   ]
 }

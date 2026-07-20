@@ -1,0 +1,6 @@
+{
+  "name": "check-pr-comments",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Verify whether a reviewer's GitHub PR comments are addressed in code, cross-checked against thread resolution status"
+}
