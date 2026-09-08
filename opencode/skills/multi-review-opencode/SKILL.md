@@ -1,5 +1,5 @@
 ---
-name: multi-review
+name: multi-review-opencode
 description: Use when reviewing a PR, branch diff, or set of changed files with multiple parallel specialist perspectives (correctness, security, test coverage, and performance).
 ---
 
