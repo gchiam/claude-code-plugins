@@ -7,7 +7,12 @@
    - `--files <paths>`
 2. If `--pr` is provided:
    - Run `gh pr view <NUMBER> --json baseRefName,headRefName,title,body`
-   - Run `git diff origin/<baseRefName>...HEAD` (or fetch the target PR ref)
+   - If that fails or the PR is not found, surface the error in-chat and stop
+     (or fall back to the no-target resolution below with the user's
+     confirmation)
+   - Run `git diff origin/<baseRefName>...HEAD` (or fetch the target PR ref);
+     if `origin/<baseRefName>` is missing locally, run
+     `git fetch origin <baseRefName>` before diffing
 3. If no target specified:
    - Inspect the active branch and check for an open PR via `gh pr view`
    - Otherwise compare against the tracking upstream branch or common merge-base
@@ -18,13 +23,15 @@
    - Approximate diff size
    - Inline for small diffs; for large ones (>~400 lines or >~15 files), dispatch
      `explorer` (background) to produce the profile
-5. Apply the gating rules in `references/agent-routing.md`:
+5. If the resolved diff is empty, report "no changes to review" in-chat and skip
+   Phases 2–4 — never dispatch lanes against an empty diff.
+6. Apply the gating rules in `references/agent-routing.md`:
    - Default lanes: `arbiter`, `hunter`, `proctor`
    - Add `paladin` if security-sensitive surfaces changed
    - Add `oracle` for architecture-critical or perf-critical changes
    - Add `designer` (read-only prompt) for UI-only diffs
    - Tier 3 lanes only if the user explicitly opted in
-6. If a routed agent is unavailable, note the lane for degraded inline review
+7. If a routed agent is unavailable, note the lane for degraded inline review
    (see `references/agent-routing.md` §5).
 
 ## Phase 2: Parallel Lane Dispatch
@@ -37,10 +44,24 @@
 4. Record each lane's task/session identifier for tracking.
 5. Collect results as completion notifications arrive; write raw output to
    `.review-panel/raw-<agent>.md` (or `.json`).
-6. Do not poll; continue with any non-overlapping work while lanes run.
+6. On a lane failure — dispatch error, an error result instead of findings, or a
+   lane that never completes — treat the lane as degraded per
+   `references/agent-routing.md` §5 (inline review or explicit decline), record
+   the failure reason in the summary's "Degraded lanes" field, and state the
+   failure in-chat.
+7. If a lane's output does not parse as the JSON contract, do not discard it
+   silently: mark the lane as output-unparseable in the report, attempt
+   best-effort structured extraction from the raw text, and cite the raw file
+   path (see `references/agent-routing.md` §4).
+8. Do not poll; continue with any non-overlapping work while lanes run.
+9. Before aggregation, verify every dispatched lane has a collected result or a
+   recorded degradation/output-unparseable marker — a stuck lane with neither is
+   resolved (inline review or explicit decline) so it cannot be silently dropped.
 
 ## Phase 3: Validation Pass
-1. Filter candidate findings with severity CRITICAL or IMPORTANT.
+1. Filter candidate findings with severity CRITICAL or IMPORTANT. Findings from
+   output-unparseable lanes are limited to what best-effort extraction produced
+   and cite the raw output file path.
 2. Batch related candidates and dispatch parallel `explorer` validators
    (background), one per batch, instructing each to verify against current file
    contents:

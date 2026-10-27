@@ -43,5 +43,7 @@ Notes:
 - `Agent(s)` and `Verdict` columns are required; verdict is one of CONFIRMED,
   DOWNGRADED, FALSE_POSITIVE (FALSE_POSITIVE rows are removed from the tables
   and only counted in the Executive Summary).
-- SUGGESTION findings skip validation; show them without a verdict.
+- SUGGESTION findings skip validation; show them without a verdict. An
+  IMPORTANT finding downgraded to SUGGESTION keeps a marker in the Suggestions
+  list, e.g. "- [ ] `path/to/file.ts:15` (agent, DOWNGRADED from IMPORTANT): detail".
 - Omit the Council section entirely unless a council pass ran.

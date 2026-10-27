@@ -1,4 +1,4 @@
-# review-panel — Redesign Proposal (multi-review-opencode v2)
+# review-panel — Design (v2, formerly multi-review-opencode)
 
 Status: implemented. Target: rewrite of `SKILL.md` and `references/` in this directory.
 
@@ -42,7 +42,7 @@ Replaces the role catalog in `references/reviewer-roles.md` (file becomes
 | Architecture-critical / performance review | `oracle` | `anthropic.claude-opus-5-5` high | 2 (gated) |
 | Maintainability sweep | `janitor` | session model | 3 (opt-in) |
 | UI / visual diffs (read-only instructions) | `designer` | `github-copilot/gpt-6.1-sol` medium | 2 (gated: UI-only diffs) |
-| Image / screenshot evidence in the diff | `observer` | `github-copilot/gpt-6.1-sol` low | 3 (opt-in; disabled by default — see §8) |
+| Image / screenshot evidence in the diff | `observer` | `github-copilot/gpt-6.1-sol` low | 3 (opt-in; disabled by default — see §7) |
 | Validation of CRITICAL/IMPORTANT findings | `explorer` validators | `zai.glm-5p3-flash` low | per-phase |
 | Consensus on contested CRITICAL findings | `council` | config-driven councillors | 3 (explicit user opt-in) |
 | Post-review remediation | `fixer` | `zai.glm-5p3-flash` high | Out of review scope — §7 |
@@ -107,8 +107,9 @@ agent's scope limits, the read-only constraint, and this output contract.
   fixer-driven remediation, but only on explicit user request, as a separate step.
 - **`council` is opt-in.** Highest-cost path; never auto-dispatched.
 - **`observer` gap.** Disabled by the plugin default (`disabled_agents: ['observer']`).
-  The skill documents it as an opt-in lane requiring `"disabled_agents": []` plus a
-  vision-capable model; it never assumes observer availability.
+  The skill marks it as opt-in and disabled by default in the routing table
+  (agent-routing.md §1) but does not document the enablement steps or a
+  vision-capable-model prerequisite; it never assumes observer availability.
 
 ## 8. Caveats & runtime notes
 

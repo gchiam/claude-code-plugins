@@ -20,6 +20,15 @@ Requires these agents in the OpenCode registry — provided by
 agents defined in your own config. A missing agent degrades its lane to inline
 review by the main session with a warning (see `references/agent-routing.md` §5).
 
+## When NOT to Use
+
+Do not use this skill when:
+- The diff is trivial or contains only nitpicks — a quick inline glance is enough.
+- The user wants fixes applied as part of the review — remediation is a separate
+  post-report step (see `fixer`), not part of the review itself.
+- A dedicated review plugin (e.g. `plugins/multi-review`) is explicitly requested —
+  use the plugin instead.
+
 ## Core Rules
 
 1. Scope: code review only. No lane modifies source files or applies automated fixes during review.

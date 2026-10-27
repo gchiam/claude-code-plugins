@@ -37,7 +37,12 @@ Run these on every review unless the user narrows scope.
 **Tier 3 — opt-in only.** `council` on contested CRITICALs, `janitor`
 maintainability sweep, `observer` for image evidence. Never auto-dispatch.
 
-**Limits.** Cap concurrent review lanes at 3–4; premium (Opus) lanes at 2 per run.
+**Limits.** Cap concurrent review lanes at 3–4; premium-tier lanes (per the
+routing table) at 2 per run. When selected lanes exceed the caps, queue rather
+than drop: overflow lanes run serially after the first batch completes. If the
+premium cap is exceeded, `paladin` takes priority over `oracle`; `oracle`'s
+concern is then folded into `arbiter`'s prompt or run as a degraded inline lane
+recorded under "Degraded lanes". Never silently drop a gated lane.
 
 ## 3. Per-Agent Lane Scope
 
@@ -83,8 +88,17 @@ Each reviewer must format findings as a JSON array of items adhering to:
 The `agent` field must match the lane's agent name. Empty finding sets are valid —
 return `[]` rather than inventing findings.
 
+If a lane's output does not parse as this JSON contract (truncated, prose, or
+malformed), do not discard it silently: mark the lane as output-unparseable in
+the report, attempt a best-effort structured extraction from the raw text, and
+cite the raw output file path (`.review-panel/raw-<agent>.md`).
+
 ## 5. Degradation
 
 If a routed marketplace agent is unavailable (not installed/enabled), do not
 silently skip the lane: fall back to an inline review of that concern by the
-main session and flag the degraded lane in the final report.
+main session and flag the degraded lane in the final report. The same applies
+to runtime dispatch failures: if dispatch errors, the lane returns an error
+result instead of findings, or a lane never completes, treat it as degraded —
+inline review or explicit decline, with the failure reason recorded in the
+report.
