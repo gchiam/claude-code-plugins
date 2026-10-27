@@ -1,15 +1,24 @@
 ---
-name: multi-review-opencode
-description: Use when reviewing a PR, branch diff, or set of changed files with multiple parallel specialist perspectives — routes review lanes to oh-my-opencode-slim agents (correctness, error paths, test sufficiency, security, architecture) with cost-tiered gating, independent validation, and an aggregated report.
+name: review-panel
+description: Use when reviewing a PR, branch diff, or set of changed files with multiple parallel specialist perspectives — routes review lanes to oh-my-opencode-slim agents (correctness, error paths, test sufficiency, security, architecture) with cost-tiered gating, independent validation, and an aggregated report. Requires the oh-my-opencode-slim agent roster (or equivalently-named agents).
 ---
 
-# OpenCode Multi-Review (v2)
+# Review Panel
 
 Run multi-perspective code reviews by routing review lanes to named
 oh-my-opencode-slim agents, dispatched in parallel as background subagents,
 with an independent validation pass and an aggregated summary report.
 
 See `DESIGN.md` for the rationale and the role→agent migration map.
+
+## Prerequisites
+
+Requires these agents in the OpenCode registry — provided by
+[oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim)
+(built-ins: `explorer`, `oracle`, `designer`, `council`, `fixer`; marketplace:
+`arbiter`, `paladin`, `hunter`, `proctor`, `janitor`) — or equivalently-named
+agents defined in your own config. A missing agent degrades its lane to inline
+review by the main session with a warning (see `references/agent-routing.md` §5).
 
 ## Core Rules
 

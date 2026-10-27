@@ -1,4 +1,4 @@
-# Multi-Review Workflow Steps
+# Review Panel Workflow Steps
 
 ## Phase 1: Target Resolution and Diff Triage
 1. Parse flags or user input:

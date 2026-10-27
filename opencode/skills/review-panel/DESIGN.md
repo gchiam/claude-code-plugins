@@ -1,6 +1,6 @@
-# multi-review-opencode v2 — Redesign Proposal
+# review-panel — Redesign Proposal (multi-review-opencode v2)
 
-Status: proposed (awaiting approval). Target: rewrite of `SKILL.md` and `references/` in this directory.
+Status: implemented. Target: rewrite of `SKILL.md` and `references/` in this directory.
 
 ## 1. Summary
 
