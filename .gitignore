@@ -1,5 +1,6 @@
 # Review output directories
 .multi-reviews/
+.review-panel/
 
 # Claude context
 .claude/context/

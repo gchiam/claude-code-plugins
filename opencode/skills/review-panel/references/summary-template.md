@@ -1,6 +1,6 @@
 # Summary Report Template
 
-When writing `.multi-reviews/review-summary.md`, use the following structure:
+When writing `.review-panel/review-summary.md`, use the following structure:
 
 ```markdown
 # Multi-Perspective Code Review Summary

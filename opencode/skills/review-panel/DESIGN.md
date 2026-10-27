@@ -69,13 +69,13 @@ Replaces the role catalog in `references/reviewer-roles.md` (file becomes
    `explorer`. Apply gating rules → lane set.
 2. **Parallel specialist reviews** — dispatch each lane with the `subagent` tool,
    `background: true`, using the per-agent prompt contract; collect on completion
-   notifications; write raw output to `.multi-reviews/raw-<agent>.md`.
+   notifications; write raw output to `.review-panel/raw-<agent>.md`.
 3. **Finding validation** — spawn parallel `explorer` validators (cheap Flash tier) to
    re-check every CRITICAL/IMPORTANT finding against current file contents; verdicts
    CONFIRMED / DOWNGRADED / FALSE_POSITIVE. Contested CRITICALs may go to `council`
    only with explicit user opt-in.
 4. **Aggregation & reporting** — dedupe across agents, order by severity, write
-   `.multi-reviews/review-summary.md` (per-lane agent/model attribution, validation
+   `.review-panel/review-summary.md` (per-lane agent/model attribution, validation
    verdicts), present a concise table in chat.
 
 ## 6. Output contract
@@ -135,5 +135,6 @@ agent's scope limits, the read-only constraint, and this output contract.
 
 Role → agent mapping for anyone comparing old reports: `correctness` → `arbiter` (+ error
 paths → `hunter`), `security` → `paladin`, `test-coverage` → `proctor`,
-`architecture-perf` → `oracle` (gated) / `janitor` (maintainability, opt-in). Artifacts
-stay in `.multi-reviews/`; old reports remain readable.
+`architecture-perf` → `oracle` (gated) / `janitor` (maintainability, opt-in). The artifact
+directory is renamed from `.multi-reviews/` to `.review-panel/`; old v1 reports stay in
+`.multi-reviews/` and remain readable.

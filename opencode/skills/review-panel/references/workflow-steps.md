@@ -28,7 +28,7 @@
    (see `references/agent-routing.md` §5).
 
 ## Phase 2: Parallel Lane Dispatch
-1. Ensure `.multi-reviews/` exists (`mkdir -p .multi-reviews`).
+1. Ensure `.review-panel/` exists (`mkdir -p .review-panel`).
 2. Dispatch each selected lane in parallel using the `subagent` tool with
    `background: true`, one call per agent, e.g. `subagent(agent: "paladin",
    background: true, prompt: ...)`.
@@ -36,7 +36,7 @@
    diff + base ref, scope limits, read-only constraint, JSON output contract.
 4. Record each lane's task/session identifier for tracking.
 5. Collect results as completion notifications arrive; write raw output to
-   `.multi-reviews/raw-<agent>.md` (or `.json`).
+   `.review-panel/raw-<agent>.md` (or `.json`).
 6. Do not poll; continue with any non-overlapping work while lanes run.
 
 ## Phase 3: Validation Pass
@@ -55,7 +55,7 @@
 ## Phase 4: Aggregated Summary
 1. Deduplicate matching findings across agents (same file + line + issue).
 2. Order findings: CRITICAL, then IMPORTANT, then SUGGESTION.
-3. Write the final report to `.multi-reviews/review-summary.md` using
+3. Write the final report to `.review-panel/review-summary.md` using
    `references/summary-template.md`, including per-lane agent attribution and
    validation verdicts.
 4. Output a concise summary in chat: findings counts, top issues, any degraded
