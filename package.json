@@ -13,7 +13,6 @@
     "plugins/multi-review",
     "plugins/jira-cli",
     "plugins/pr-desc-review",
-    "plugins/claude-cleanup",
     "plugins/git-absorb",
     "plugins/skill-cso-review",
     "plugins/logseq",
